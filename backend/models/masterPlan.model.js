@@ -31,4 +31,4 @@ const masterPlanSchema = new mongoose.Schema({
     timestamps: true
 });
 
-export const MasterPlanModel = mongoose.model("MasterPlan", masterPlanSchema);
+export const MasterPlan = mongoose.model("MasterPlan", masterPlanSchema);
