@@ -1,11 +1,11 @@
 import express from "express";
 import { createServer } from "http";
 import {Server} from "socket.io";
-import {cors} from "cors";
+import cors from "cors";
 import dotenv from "dotenv";
 import cron from "node-cron";
 import connectDB from "./config/db.js";
-import { registerSocketHandlers } from "./sockets/chatSocket.js";
+import { registerSocketHandlers } from "./sockets/socket.js";
 import { runWeeklyReportJob } from "./utils/cronJobs.js";
 
 import authRoutes    from "./routes/auth.js";

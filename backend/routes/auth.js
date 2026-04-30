@@ -1,4 +1,4 @@
-export {Router} from "expreess";
+import {Router} from "express";
 import { register, login, getMe } from "../controllers/authController.js";
 import { protect } from "../middleware/auth.js";
 
