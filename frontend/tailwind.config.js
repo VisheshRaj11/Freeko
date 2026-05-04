@@ -1,21 +1,18 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  darkMode: ["class"],
-  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+export default {
+  content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
-        accent:  "#C6F135",
-        dark:    "#0A0A0A",
+        green:   "#39FF14",
+        bg:      "#080808",
         surface: "#111111",
-        card:    "#1A1A1A",
-        border:  "#2A2A2A",
       },
       fontFamily: {
-        display: ["'Bebas Neue'", "cursive"],
-        body:    ["'DM Sans'", "sans-serif"],
+        display: ["'Barlow Condensed'", "sans-serif"],
+        body:    ["'Space Grotesk'",    "sans-serif"],
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [],
 }

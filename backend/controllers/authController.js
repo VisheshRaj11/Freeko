@@ -7,6 +7,7 @@ const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
 export const register = async (req, res) => {
+  console.log(req.body);
   const { name, email, password, role } = req.body;
   try {
     const exists = await User.findOne({ email });

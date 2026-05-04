@@ -32,7 +32,7 @@ export const generatePlan = async (req, res) => {
     const plan = await MasterPlan.create({
       coachId: req.user._id, athleteId, title,
       totalWeeks, startDate, endDate, status: "active",
-      aiMetadata: { model: "gemini-2.0-flash", generatedAt: new Date() },
+      aiMetadata: { model: "gemini-2.5-flash", generatedAt: new Date() },
     });
 
     for (const meso of data.mesocycles) {

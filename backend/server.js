@@ -22,8 +22,16 @@ connectDB();
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-    cors: {origin : process.env.CLIENT_URL, methods: ["GET", "POST"]}
+    cors: {origin : process.env.CLIENT_URL, methods: ["GET", "POST", "OPTIONS"], credentials: true}
 });
+
+app.use(cors({
+    origin: process.env.CLIENT_URL,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    // credentials: true
+}))
+
+app.use(express.json());
 
 registerSocketHandlers(io);
 
