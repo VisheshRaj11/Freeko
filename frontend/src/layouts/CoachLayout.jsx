@@ -51,10 +51,11 @@ export default function CoachLayout() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
-                  className="font-display text-xl tracking-wider whitespace-nowrap"
+                  className="flex items-center gap-2 justify-start font-display text-xl tracking-wider whitespace-nowrap"
                   style={{ color: "var(--text)" }}
                 >
-                  F<span className="text-accent">reeko</span>
+                  <img src="./logo.png" alt="" width={20} className="rounded"/>
+                  Freeko
                 </motion.span>
               )}
             </AnimatePresence>
@@ -72,7 +73,7 @@ export default function CoachLayout() {
                 `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200
                  group relative overflow-hidden
                  ${isActive
-                   ? "bg-accent text-black"
+                   ? "bg-gray-300/10 text-white"
                    : "hover:bg-white/5 text-[var(--text-muted)] hover:text-[var(--text)]"
                  }`
               }
