@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { NavLink, Outlet, useNavigate } from "react-router-dom"
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   LayoutDashboard, TrendingUp,
@@ -44,6 +44,7 @@ export default function AthleteLayout() {
             <div className="w-8 h-8 bg-accent rounded-sm rotate-12 flex-shrink-0" />
             <AnimatePresence>
               {!collapsed && (
+                 <Link to={'/'} className="cursor-pointer">
                 <motion.span
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -54,6 +55,7 @@ export default function AthleteLayout() {
                   <img src="./logo.png" alt="" width={20} className="rounded"/>
                   Freeko
                 </motion.span>
+               </Link>
               )}
             </AnimatePresence>
           </div>

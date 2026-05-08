@@ -27,7 +27,7 @@ const io = new Server(httpServer, {
 
 app.use(cors({
     origin: process.env.CLIENT_URL,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
     // credentials: true
 }))
 

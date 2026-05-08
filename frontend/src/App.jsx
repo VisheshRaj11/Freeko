@@ -19,6 +19,7 @@ import AthleteChat      from "./pages/athlete/AthleteChat"
 
 import CoachLayout   from "./layouts/CoachLayout"
 import AthleteLayout from "./layouts/AthleteLayout"
+import AthleteOnboarding from './pages/athlete/AthleteOnBoarding'
 
 const ProtectedRoute = ({children, role}) => {
   const {user, token} = useAuthStore();
@@ -56,6 +57,7 @@ const App = () => {
         <Route path="workout/:id"     element={<AthleteWorkout />} />
         <Route path="progress"        element={<AthleteProgress />} />
         <Route path="chat/:planId"    element={<AthleteChat />} />
+        <Route path="onboarding"    element={<AthleteOnboarding />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
