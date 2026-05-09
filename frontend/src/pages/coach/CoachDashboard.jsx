@@ -272,17 +272,12 @@ export default function CoachDashboard() {
   const [anomalies,setAnomalies]= useState([])
   const [loading,  setLoading]  = useState(true)
 
-  // Mock chart data — replace with real API data later
-  const chartData = [
-    { week: "Wk 1", sessions: 12 },
-    { week: "Wk 2", sessions: 18 },
-    { week: "Wk 3", sessions: 15 },
-    { week: "Wk 4", sessions: 22 },
-    { week: "Wk 5", sessions: 19 },
-    { week: "Wk 6", sessions: 27 },
-    { week: "Wk 7", sessions: 24 },
-    { week: "Wk 8", sessions: 31 },
-  ]
+  const sessionCounts = {}
+  const weeks = ["Wk 1","Wk 2","Wk 3","Wk 4","Wk 5","Wk 6","Wk 7","Wk 8"]
+  weeks.forEach((w) => { sessionCounts[w] = 0 })
+
+  const [chartData,     setChartData]     = useState([])
+  const [totalSessions, setTotalSessions] = useState(0)
 
   useEffect(() => {
     const load = async () => {
@@ -333,7 +328,36 @@ export default function CoachDashboard() {
           })
         )
 
-        setAthletes(enriched)
+        setAthletes(enriched);
+
+        await Promise.all(
+        enriched.map(async (a) => {
+          try {
+            const { data: sessions } = await api.get(`/workout/athlete/${a.id}`)
+            sessions.forEach((s) => {
+              if (s.status !== "completed") return
+              const date    = new Date(s.loggedAt)
+              const now     = new Date()
+              const diffMs  = now - date
+              const diffDays= Math.floor(diffMs / (1000 * 60 * 60 * 24))
+              const weekIdx = Math.floor(diffDays / 7)
+              // Map to last 8 weeks (0 = this week, 7 = oldest)
+              const label   = weeks[Math.min(7 - weekIdx, 7)]
+              if (label) sessionCounts[label]++
+            })
+          } catch { }
+        })
+      )
+
+      const realChartData = weeks.map((w) => ({
+        week:     w,
+        sessions: sessionCounts[w],
+      }))
+      setChartData(realChartData)
+
+      // Real total sessions count
+      const totalSessions = Object.values(sessionCounts).reduce((a, b) => a + b, 0)
+      setTotalSessions(totalSessions)
 
         // Fetch anomaly reports for all athletes
         const anomalyResults = await Promise.all(
@@ -563,44 +587,57 @@ export default function CoachDashboard() {
                 </div>
               </div>
               <span className="text-2xl font-display font-900 text-green">
-                168
+                 {totalSessions}
               </span>
             </div>
 
-            <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={chartData}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(255,255,255,0.04)"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="week"
-                  tick={{ fill: "var(--text-muted)", fontSize: 11, fontFamily: "Space Grotesk" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: "var(--text-muted)", fontSize: 11, fontFamily: "Space Grotesk" }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={28}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="sessions"
-                  stroke="var(--green)"
-                  strokeWidth={2}
-                  dot={{ fill: "var(--green)", r: 3, strokeWidth: 0 }}
-                  activeDot={{
-                    r: 5, fill: "var(--green)",
-                    stroke: "rgba(57,255,20,0.3)",
-                    strokeWidth: 4
-                  }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {chartData.length === 0 ? (
+              <div className="h-40 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-6 h-6 rounded-full border-2 border-green
+                                  border-t-transparent animate-spin" />
+                  <p className="text-xs text-green">Loading session data...</p>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={chartData}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="rgba(255,255,255,0.04)"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="week"
+                    tick={{ fill: "var(--text-muted)", fontSize: 11,
+                            fontFamily: "Space Grotesk" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: "var(--text-muted)", fontSize: 11,
+                            fontFamily: "Space Grotesk" }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={28}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line
+                    type="monotone"
+                    dataKey="sessions"
+                    stroke="var(--green)"
+                    strokeWidth={2}
+                    dot={{ fill: "var(--green)", r: 3, strokeWidth: 0 }}
+                    activeDot={{
+                      r: 5, fill: "var(--green)",
+                      stroke: "rgba(57,255,20,0.3)",
+                      strokeWidth: 4,
+                    }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </motion.div>
         </div>
 

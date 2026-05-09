@@ -61,9 +61,11 @@ export const getSession = async (req, res) => {
 };
 
 export const getAthleteSessions = async (req, res) => {
+  console.log(req.params.athleteId);
   try {
     const sessions = await WorkoutSession.find({ athleteId: req.params.athleteId })
       .sort("-loggedAt").limit(50);
+    console.log(sessions);
     res.json(sessions);
   } catch (err) {
     res.status(500).json({ message: err.message });

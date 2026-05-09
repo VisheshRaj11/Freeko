@@ -20,6 +20,8 @@ import AthleteChat      from "./pages/athlete/AthleteChat"
 import CoachLayout   from "./layouts/CoachLayout"
 import AthleteLayout from "./layouts/AthleteLayout"
 import AthleteOnboarding from './pages/athlete/AthleteOnBoarding'
+import CoachExistingPlans from './pages/coach/CoachExistingPlans'
+import CoachFullPlan from './pages/coach/CoachFullPlan'
 
 const ProtectedRoute = ({children, role}) => {
   const {user, token} = useAuthStore();
@@ -43,7 +45,9 @@ const App = () => {
       >
         <Route index                element={<CoachDashboard />} />
         <Route path="athletes"      element={<CoachAthletes />} />
-        <Route path="plan/:planId"  element={<CoachPlanBuilder />} />
+        <Route path="plan/:athleteId"  element={<CoachPlanBuilder />} />
+        <Route path="plan/:athleteId/plans"  element={<CoachExistingPlans />} />
+        <Route path="plan/fullPlan/:planId"  element={<CoachFullPlan />} />
         <Route path="reports"       element={<CoachReports />} />
         <Route path="chat/:planId"  element={<CoachChat />} />
       </Route>

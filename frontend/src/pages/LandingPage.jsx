@@ -9,6 +9,7 @@ import {
   Shield, Target, Cpu
 } from "lucide-react"
 import Navbar from "../components/Navbar"
+import { useAuthStore } from "../../store/authStore"
 
 const fadeUp = {
   hidden:  { opacity: 0, y: 36 },
@@ -138,7 +139,8 @@ export default function LandingPage() {
     offset:  ["start start", "end start"],
   })
   const heroY  = useTransform(scrollYProgress, [0, 1], ["0%",  "20%"])
-  const heroOp = useTransform(scrollYProgress, [0, 0.7], [1, 0])
+  const heroOp = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const {user} = useAuthStore();
 
   return (
     <div style={{ backgroundColor: "var(--bg)" }} className="overflow-x-hidden">
@@ -268,7 +270,8 @@ export default function LandingPage() {
               </motion.p>
 
               {/* CTAs */}
-              <motion.div variants={fadeUp}
+              {
+                !user && (<motion.div variants={fadeUp}
                           className="flex flex-wrap items-center gap-3">
                 <Link to="/register"
                       className="flex items-center gap-2 px-7 py-3.5 text-sm btn-green cursor-pointer">
@@ -278,7 +281,8 @@ export default function LandingPage() {
                       className="flex items-center gap-2 px-7 py-3.5 text-sm btn-glass cursor-pointer">
                   Sign In
                 </Link>
-              </motion.div>
+              </motion.div>)
+              }
 
               {/* Social proof */}
               <motion.div variants={fadeUp}
@@ -599,7 +603,9 @@ export default function LandingPage() {
               smarter, recover better, and peak at the right time.
             </motion.p>
 
-            <motion.div variants={fadeUp}
+            {
+              !user && (
+                <motion.div variants={fadeUp}
                         className="flex flex-wrap items-center justify-center gap-4">
               <Link to="/register"
                     className="flex items-center gap-2 px-8 py-4 text-base btn-green">
@@ -610,6 +616,8 @@ export default function LandingPage() {
                 I have an account
               </Link>
             </motion.div>
+              )
+            }
           </motion.div>
         </div>
       </section>

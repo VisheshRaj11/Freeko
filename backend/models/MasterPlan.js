@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const masterPlanSchema = new mongoose.Schema({
     coachId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Coach",
+        ref: "CoachProfile",
         required: true
     },
 

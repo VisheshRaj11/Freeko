@@ -1,11 +1,12 @@
-import { useState } from "react"
-import { useParams } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { Link, useParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Brain, ChevronDown, ChevronRight, ChevronUp,
   Dumbbell, Zap, CheckCircle, Plus,
   Loader2, Sparkles, Target, Calendar,
-  TrendingUp, AlertTriangle, Edit3, Save
+  TrendingUp, AlertTriangle, Edit3, Save,
+  Eye
 } from "lucide-react"
 import api from "../../lib/axios"
 
@@ -270,25 +271,56 @@ function MesocycleBlock({ meso, index }) {
 
 // ── Main ───────────────────────────────────────────────────────
 export default function CoachPlanBuilder() {
-  const { planId } = useParams()
+  const { athleteId } = useParams();
+  // console.log(athleteId);
+  const [athleteInfo, setAthleteInfo] = useState(null);
 
   const [form, setForm] = useState({
-    athleteId:  "",
+    athleteId:  athleteInfo?._id || "",
     title:      "",
     startDate:  "",
     totalWeeks: 12,
-    fitnessLevel: "intermediate",
-    goals:      "",
-    weaknesses: "",
-    competitionDate: "",
-    weight: "",
-    height: "",
+    fitnessLevel: athleteInfo?.fitnessLevel || "intermediate",
+    goals:      athleteInfo?.goals || "",
+    weaknesses: athleteInfo?.weaknesses || "",
+    competitionDate: athleteInfo?.competitionDate || "",
+    weight: athleteInfo?.weight || "",
+    height: athleteInfo?.height || "",
   })
 
   const [plan,      setPlan]      = useState(null)
   const [loading,   setLoading]   = useState(false)
   const [error,     setError]     = useState(null)
   const [step,      setStep]      = useState("form") // "form" | "plan"
+
+  useEffect(() => {
+    console.log(athleteId);
+    const fetchAthleteInfo = async() => {
+      const res = await api.get(`/athlete/${athleteId}`);
+      console.log(res.data);
+      setAthleteInfo(res.data);
+    }
+
+    fetchAthleteInfo();
+  },[athleteId]);
+
+  useEffect(() => {
+  if (athleteInfo) {
+    setForm({
+      athleteId: athleteInfo._id || "",
+      title: "",
+      startDate: "",
+      totalWeeks: 12,
+      fitnessLevel: athleteInfo.fitnessLevel || "intermediate",
+      goals: athleteInfo.goals || "",
+      weaknesses: athleteInfo.weaknesses || "",
+      competitionDate: athleteInfo.competitionDate.split('T')[0] || "",
+      weight: athleteInfo.weight || "",
+      height: athleteInfo.height || "",
+    });
+  }
+}, [athleteInfo]);
+
 
   const handleGenerate = async () => {
     if (!form.title || !form.startDate) return
@@ -621,12 +653,13 @@ export default function CoachPlanBuilder() {
                 <Edit3 size={14} />
                 Rebuild
               </button>
-              <button
+              <Link
+              to={`/coach/plan/fullPlan/${plan._id}`}
                 className="px-4 py-2 text-sm btn-green flex items-center gap-2"
               >
-                <Save size={14} />
-                Save Plan
-              </button>
+                <Eye size={14} />
+                View Full Plan
+              </Link>
             </div>
           </motion.div>
 

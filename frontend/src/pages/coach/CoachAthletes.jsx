@@ -508,7 +508,8 @@ export default function CoachAthletes() {
                 </p>
               </div>
 
-              <Link
+             <div className="flex flex-col gap-2">
+               <Link
                 to={`/coach/plan/${selectedAthlete._id}`}
                 onClick={() => setShowPlanModal(false)}
                 className="w-full flex items-center justify-center gap-2
@@ -518,6 +519,17 @@ export default function CoachAthletes() {
                 Open Plan Builder
                 <ChevronRight size={15} />
               </Link>
+              <Link
+                to={`/coach/plan/${selectedAthlete._id}/plans`}
+                onClick={() => setShowPlanModal(false)}
+                className="w-full flex items-center justify-center gap-2
+                           py-3.5 rounded-xl btn-green text-sm font-bold"
+              >
+                <Activity size={15} />
+                  Open Exiting Plans
+                <ChevronRight size={15} />
+              </Link>
+             </div>
             </motion.div>
           </motion.div>
         )}

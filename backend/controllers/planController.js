@@ -4,13 +4,28 @@ import Mesocycle     from "../models/Mesocycle.js";
 import Microcycle    from "../models/Microcycle.js";
 import WorkoutSession from "../models/WorkoutSession.js";
 import AthleteProfile from "../models/AthleteProfile.js";
+import mongoose from "mongoose";
+import { pl } from "zod/v4/locales";
 
 const AI = process.env.AI_SERVICE_URL;
+
+
+// Add this helper function at the top of planController.js
+const sanitizeIntensity = (level) => {
+  if (!level) return "moderate"
+  const l = level.toLowerCase()
+  if (l.includes("peak"))     return "peak"
+  if (l.includes("high"))     return "high"
+  if (l.includes("low"))      return "low"
+  if (l.includes("moderate")) return "moderate"
+  return "moderate" // safe default
+}
 
 export const generatePlan = async (req, res) => {
   const { athleteId, title, startDate, totalWeeks } = req.body;
   try {
-    const profile = await AthleteProfile.findOne({ userId: athleteId });
+    const profile = await AthleteProfile.findOne({ _id: athleteId });
+
     if (!profile) return res.status(404).json({ message: "Athlete not found" });
 
     const { data } = await axios.post(`${AI}/generate-plan`, {
@@ -40,7 +55,7 @@ export const generatePlan = async (req, res) => {
         masterPlanId: plan._id, name: meso.name,
         focus: meso.focus, weekStart: meso.week_start,
         weekEnd: meso.week_end, totalWeeks: meso.total_weeks,
-        intensityLevel: meso.intensity_level, order: meso.order,
+        intensityLevel: sanitizeIntensity(meso.intensity_level), order: meso.order,
       });
 
       for (const micro of meso.microcycles) {
@@ -66,11 +81,29 @@ export const generatePlan = async (req, res) => {
   }
 };
 
+export const getMicroPlans = async(req, res) => {
+  console.log(req.params);
+  const {coachId, athleteId} = req.params;
+  // coachId = new mongoose.Types
+  if(!coachId || !athleteId) return res.json("coach and athlete are mandatory");
+  try {
+    const data = await MasterPlan.find({coachId, athleteId});
+    console.log(data);
+    return res.json({plan: data});
+  } catch (error) {
+      res.status(500).json({ message: err.message });
+  }
+}
+
 export const getPlan = async (req, res) => {
+  // console.log(req.params);
   try {
     const plan = await MasterPlan.findById(req.params.planId)
       .populate("coachId", "name email")
       .populate("athleteId", "name email");
+
+    // console.log(plan);
+
     if (!plan) return res.status(404).json({ message: "Not found" });
 
     const mesocycles = await Mesocycle.find({ masterPlanId: plan._id }).sort("order");
@@ -91,6 +124,7 @@ export const getPlan = async (req, res) => {
 
     res.json({ plan, mesocycles: result });
   } catch (err) {
+    console.log(err.message);
     res.status(500).json({ message: err.message });
   }
 };
