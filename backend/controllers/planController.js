@@ -91,7 +91,7 @@ export const getMicroPlans = async(req, res) => {
     console.log(data);
     return res.json({plan: data});
   } catch (error) {
-      res.status(500).json({ message: err.message });
+      res.status(500).json({ message: error.message });
   }
 }
 

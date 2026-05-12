@@ -9,71 +9,72 @@ import {
   ChevronUp, ChevronDown, Save, Trophy
 } from "lucide-react"
 import api from "../../lib/axios"
+import { useWorkoutStore } from "../../../store/setStore"
 
 // ── Mock session data ──────────────────────────────────────────
-const MOCK_SESSION = {
-  id:       "session-001",
-  dayLabel: "Monday — Push Day",
-  week:     8,
-  block:    "Strength Block",
-  exercises: [
-    {
-      id:       1,
-      name:     "Bench Press",
-      sets:     4,
-      reps:     8,
-      weight:   85,
-      rpe:      7,
-      notes:    "Controlled descent, 2 sec eccentric",
-      completed: false,
-      sets_logged: [],
-    },
-    {
-      id:       2,
-      name:     "Overhead Press",
-      sets:     3,
-      reps:     10,
-      weight:   50,
-      rpe:      7,
-      notes:    "Brace core, don't hyperextend lower back",
-      completed: false,
-      sets_logged: [],
-    },
-    {
-      id:       3,
-      name:     "Incline DB Press",
-      sets:     3,
-      reps:     12,
-      weight:   30,
-      rpe:      8,
-      notes:    "Full stretch at bottom",
-      completed: false,
-      sets_logged: [],
-    },
-    {
-      id:       4,
-      name:     "Cable Fly",
-      sets:     3,
-      reps:     15,
-      weight:   15,
-      rpe:      7,
-      notes:    "Squeeze at peak contraction",
-      completed: false,
-      sets_logged: [],
-    },
-    {
-      id:       5,
-      name:     "Tricep Pushdown",
-      sets:     3,
-      reps:     15,
-      weight:   25,
-      rpe:      6,
-      notes:    "Keep elbows tucked",
-      completed: false,
-      sets_logged: [],
-    },
-  ],
-}
+// const MOCK_SESSION = {
+//   id:       "session-001",
+//   dayLabel: "Monday — Push Day",
+//   week:     8,
+//   block:    "Strength Block",
+//   exercises: [
+//     {
+//       id:       1,
+//       name:     "Bench Press",
+//       sets:     4,
+//       reps:     8,
+//       weight:   85,
+//       rpe:      7,
+//       notes:    "Controlled descent, 2 sec eccentric",
+//       completed: false,
+//       sets_logged: [],
+//     },
+//     {
+//       id:       2,
+//       name:     "Overhead Press",
+//       sets:     3,
+//       reps:     10,
+//       weight:   50,
+//       rpe:      7,
+//       notes:    "Brace core, don't hyperextend lower back",
+//       completed: false,
+//       sets_logged: [],
+//     },
+//     {
+//       id:       3,
+//       name:     "Incline DB Press",
+//       sets:     3,
+//       reps:     12,
+//       weight:   30,
+//       rpe:      8,
+//       notes:    "Full stretch at bottom",
+//       completed: false,
+//       sets_logged: [],
+//     },
+//     {
+//       id:       4,
+//       name:     "Cable Fly",
+//       sets:     3,
+//       reps:     15,
+//       weight:   15,
+//       rpe:      7,
+//       notes:    "Squeeze at peak contraction",
+//       completed: false,
+//       sets_logged: [],
+//     },
+//     {
+//       id:       5,
+//       name:     "Tricep Pushdown",
+//       sets:     3,
+//       reps:     15,
+//       weight:   25,
+//       rpe:      6,
+//       notes:    "Keep elbows tucked",
+//       completed: false,
+//       sets_logged: [],
+//     },
+//   ],
+// }
 
 // ── Rest timer ─────────────────────────────────────────────────
 function RestTimer({ seconds, onDone }) {
@@ -159,14 +160,16 @@ function RestTimer({ seconds, onDone }) {
 }
 
 // ── Set logger row ─────────────────────────────────────────────
-function SetRow({ setNum, planned, onLog }) {
+function SetRow({ setNum, planned,setIndex, onLog }) {
   const [weight, setWeight] = useState(planned.weight)
   const [reps,   setReps]   = useState(planned.reps)
   const [rpe,    setRpe]    = useState(planned.rpe)
   const [logged, setLogged] = useState(false)
+  const { toggleSet } = useWorkoutStore()
 
   const handleLog = () => {
     setLogged(true)
+    toggleSet(planned.name, setIndex, planned.sets)
     onLog({ set: setNum, weight, reps, rpe })
   }
 
@@ -295,6 +298,7 @@ function ExerciseCard({ ex, isActive, onComplete, index }) {
   const [setsLogged, setSetsLogged] = useState([])
   const [showRest,   setShowRest]   = useState(false)
   const [expanded,   setExpanded]   = useState(isActive)
+  const {setCompletion, toggleSet, isExerciseCompleted} = useWorkoutStore();
 
   useEffect(() => {
     setExpanded(isActive)
@@ -312,7 +316,7 @@ function ExerciseCard({ ex, isActive, onComplete, index }) {
   }
 
   const progress = setsLogged.length / ex.sets
-  const allDone  = setsLogged.length >= ex.sets
+  const allDone  =   isExerciseCompleted(ex.name, ex.sets)
 
   return (
     <motion.div
@@ -467,6 +471,7 @@ function ExerciseCard({ ex, isActive, onComplete, index }) {
                 <SetRow
                   key={i}
                   setNum={i + 1}
+                  setIndex={i}
                   planned={ex}
                   onLog={handleSetLog}
                 />
@@ -482,6 +487,8 @@ function ExerciseCard({ ex, isActive, onComplete, index }) {
           <RestTimer
             seconds={90}
             onDone={() => setShowRest(false)}
+            // ex, isActive, onComplete, index
+            // onClick={() => toggleSet(ex.name, index, ex.sets)}
           />
         )}
       </AnimatePresence>
@@ -493,6 +500,13 @@ function ExerciseCard({ ex, isActive, onComplete, index }) {
 function CompletionScreen({ session, elapsed, anomaly, onDone }) {
   const min = Math.floor(elapsed / 60)
   const sec = elapsed % 60
+
+  useEffect(() => {
+    const markedCompleted = async() => {
+       await api.patch(`/workout/${session._id}/complete`)
+    }
+    markedCompleted();
+  },[session._id]);
 
   return (
     <motion.div
@@ -550,9 +564,9 @@ function CompletionScreen({ session, elapsed, anomaly, onDone }) {
       >
         {[
           { label: "Duration",  value: `${min}m ${sec}s`, icon: Timer    },
-          { label: "Exercises", value: session.exercises.length, icon: Dumbbell },
+          { label: "Exercises", value: session?.exercises.length, icon: Dumbbell },
           { label: "Total Sets",
-            value: session.exercises.reduce((a, e) => a + e.sets, 0),
+            value: session?.exercises.reduce((a, e) => a + e.sets, 0),
             icon: Flame },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label}
@@ -653,16 +667,26 @@ function WorkoutTimer({ running }) {
 export default function AthleteWorkout() {
   const { id }     = useParams()
   const navigate   = useNavigate()
-  const [session]  = useState(MOCK_SESSION)
-  const [exercises, setExercises] = useState(
-    session.exercises.map((e) => ({ ...e, logged_sets: [], done: false }))
-  )
+  const [session, setSession]  = useState(null)
+  // console.log(session);
+  const [exercises, setExercises] = useState([])
+  // console.log(exercises);
   const [activeIdx,   setActiveIdx]   = useState(0)
   const [sessionState, setSessionState] = useState("idle") // idle | running | done
   const [anomaly,     setAnomaly]     = useState(null)
   const [submitting,  setSubmitting]  = useState(false)
   const timerRef = useRef(null)
   const [elapsed, setElapsed]         = useState(0)
+  const {setCompletion, toggleSet, isExerciseCompleted} = useWorkoutStore();
+
+  useEffect(() => {
+    const fetchSession = async() => {
+      const {data: sess} = await api.get(`/workout/session/${id}`)
+      setSession(sess);
+      setExercises(sess.exercises);
+    }
+    fetchSession();
+  },[id])
 
   // Start timer
   useEffect(() => {
@@ -674,17 +698,35 @@ export default function AthleteWorkout() {
   const min = Math.floor(elapsed / 60)
   const sec = elapsed % 60
 
-  const completedCount = exercises.filter((e) => e.done).length
-  const totalProgress  = completedCount / exercises.length
+  const completedCount = exercises.filter((e) => e.completed).length
+ const totalProgress =
+  exercises.length > 0
+    ? completedCount / exercises.length
+    : 0
 
-  const handleExerciseComplete = (index, setsData) => {
+  const handleExerciseComplete = async(index, setsData) => {
+
+    const exercise = exercises[index]
+
     setExercises((prev) =>
       prev.map((e, i) =>
-        i === index ? { ...e, done: true, logged_sets: setsData } : e
+        i === index ? { ...e, completed: true, logged_sets: setsData } : e
       )
     )
+
+    try {
+
+    await api.patch(
+      `/workout/${session._id}/exercise/${exercise._id}`
+    )
+
+  } catch (err) {
+
+    console.error(err)
+
+  }
     // Move to next exercise
-    const nextIdx = exercises.findIndex((e, i) => i > index && !e.done)
+    const nextIdx = exercises.findIndex((e, i) => i > index && !e.completed)
     if (nextIdx !== -1) setActiveIdx(nextIdx)
   }
 
@@ -701,7 +743,7 @@ export default function AthleteWorkout() {
           reps:      e.reps,
           weight:    e.weight,
           rpe:       e.rpe,
-          completed: e.done,
+          completed: e.completed,
         })),
       })
       setAnomaly(res.data.anomalyReport)
@@ -746,12 +788,12 @@ export default function AthleteWorkout() {
             {/* Session info */}
             <div>
               <p className="text-xs text-green font-semibold tracking-widest">
-                WEEK {session.week} · {session.block.toUpperCase()}
+                WEEK {session?.microcycleId?.weekNumber}
               </p>
               <h1 className="font-display font-900 text-2xl sm:text-3xl uppercase
                              tracking-tight"
                   style={{ color: "var(--text)" }}>
-                {session.dayLabel}
+                {session?.dayLabel}
               </h1>
             </div>
 
@@ -774,7 +816,7 @@ export default function AthleteWorkout() {
               )}
 
               {/* Start / Finish button */}
-              {sessionState === "idle" ? (
+              {session === "idle" ? (
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
@@ -874,7 +916,7 @@ export default function AthleteWorkout() {
             isActive={
               sessionState === "running" &&
               i === activeIdx &&
-              !ex.done
+              !ex.completed
             }
             onComplete={(setsData) => handleExerciseComplete(i, setsData)}
           />
