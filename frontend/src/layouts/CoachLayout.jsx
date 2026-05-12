@@ -13,7 +13,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard",  to: "/coach" },
   { icon: Users,           label: "Athletes",   to: "/coach/athletes" },
   { icon: ClipboardList,   label: "Reports",    to: "/coach/reports" },
-  { icon: MessageSquare,   label: "Chat",       to: "/coach/chat/select" },
+  { icon: MessageSquare,   label: "Chat",       to: "/coach/chat" },
 ]
 
 export default function CoachLayout() {

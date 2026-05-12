@@ -113,7 +113,7 @@ export const completeExercise = async(req, res) => {
 export const completeSession = async(req, res) => {
   try {
     const s = await WorkoutSession.findByIdAndUpdate(
-      req.params.sessionId, {status: 'completed'}, {new: true});
+      req.params.sessionId, {status: 'completed', loggedAt: new Date()}, {new: true});
     res.json(s);
   } catch (err) {
       res.status(500).json({ message: err.message });

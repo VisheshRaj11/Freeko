@@ -85,9 +85,9 @@ export const getMicroPlans = async(req, res) => {
   console.log(req.params);
   const {coachId, athleteId} = req.params;
   // coachId = new mongoose.Types
-  if(!coachId || !athleteId) return res.json("coach and athlete are mandatory");
+  if(!coachId) return res.json("coach and athlete are mandatory");
   try {
-    const data = await MasterPlan.find({coachId, athleteId});
+    const data = await MasterPlan.find({coachId});
     console.log(data);
     return res.json({plan: data});
   } catch (error) {

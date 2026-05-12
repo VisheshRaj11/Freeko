@@ -6,6 +6,7 @@ const router = Router();
 router.use(protect);
 router.post("/generate", requireRole("coach"), generatePlan);
 router.get('/get-microPlans/:coachId/:athleteId', getMicroPlans);
+router.get('/get-microPlans/:coachId', getMicroPlans);
 // router.get('/get-microPlans/:coachId/:athleteId', requireRole('coach'), getMicroPlans);
 router.get("/:planId", getPlan);
 router.get("/athlete/:athleteId", getAthletePlans);

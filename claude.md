@@ -1,1 +1,0 @@
-Ensure in this conversation use less token with eifficiency. I am working the generating plan feature and get the response but aslo getting this error Mesocycle validation failed: intensityLevel: `varied (moderate to low volume...` is not a valid enum value for path `intensityLevel`. So correct the complete code so that I can get the output and make this feature workable 
