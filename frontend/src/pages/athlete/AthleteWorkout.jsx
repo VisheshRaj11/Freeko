@@ -668,7 +668,7 @@ export default function AthleteWorkout() {
   const { id }     = useParams()
   const navigate   = useNavigate()
   const [session, setSession]  = useState(null)
-  // console.log(session);
+  console.log(session);
   const [exercises, setExercises] = useState([])
   // console.log(exercises);
   const [activeIdx,   setActiveIdx]   = useState(0)
@@ -736,7 +736,7 @@ export default function AthleteWorkout() {
 
     try {
       // Call Node.js which calls FastAPI anomaly detection
-      const res = await api.post(`/workout/${session.id}/log`, {
+      const res = await api.post(`/workout/${session._id}/log`, {
         exercises: exercises.map((e) => ({
           name:      e.name,
           sets:      e.sets,

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   TrendingUp, TrendingDown, Dumbbell, Brain,
   AlertTriangle, CheckCircle, ChevronDown,
-  ChevronUp, Target, Filter, Loader2
+  ChevronUp, Target, Filter, Loader2,
+  Shield
 } from "lucide-react"
 import {
   AreaChart, Area, BarChart, Bar, RadarChart,
@@ -56,6 +57,7 @@ function SessionRow({ session }) {
   const hasAnomaly = session.aiAnomalyReport?.detected
   const completed  = session.status === "completed"
   const skipped    = session.status === "skipped"
+  const planned    = session.status === "planned"
 
   const totalSets = session.exercises?.reduce(
     (t, e) => t + (e.sets || 0), 0
@@ -96,11 +98,12 @@ function SessionRow({ session }) {
                              ? "border border-yellow-500/20 bg-yellow-500/10"
                              : "bg-green-muted border border-green/20"
                          }`}>
-          {skipped
-            ? <Target size={16} className="text-red-400" />
+          {completed
+            ? <CheckCircle size={16} className="text-blue-400" />
             : hasAnomaly
               ? <AlertTriangle size={16} style={{ color: "#FFC800" }} />
-              : <CheckCircle size={16} className="text-green" />
+              : skipped ?
+               <CheckCircle size={16} className="text-green" /> : <Shield Shieldsize={16} className="text-green" />
           }
         </div>
 
@@ -684,7 +687,10 @@ export default function AthleteProgress() {
             <div className="flex items-center gap-3 text-xs"
                  style={{ color: "var(--text-muted)" }}>
               <span className="flex items-center gap-1">
-                <CheckCircle size={11} className="text-green" /> Completed
+                <Shield size={11} className="text-green" /> Planned
+              </span>
+              <span className="flex items-center gap-1">
+                <CheckCircle size={11} className="text-blue-400" /> Completed
               </span>
               <span className="flex items-center gap-1">
                 <AlertTriangle size={11} style={{ color: "#FFC800" }} /> Anomaly
@@ -692,6 +698,7 @@ export default function AthleteProgress() {
               <span className="flex items-center gap-1">
                 <Target size={11} className="text-red-400" /> Skipped
               </span>
+              {/* {sessions} */}
             </div>
           </div>
 

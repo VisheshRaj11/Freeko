@@ -29,24 +29,33 @@ DATA_COLLECTOR_PROMPT = PromptTemplate(
     template="""
 You are the Data Collector agent in Freeko's Anomaly Detective system.
 
-Your ONLY job is to read the workout data and write a clear factual summary.
-Do NOT detect anomalies yet. Just report what you see in the numbers.
+IMPORTANT: The training plan has weight = 0 for all exercises because the AI
+does not know the athlete's strength levels. Weight is self-selected by the athlete
+to hit the target RPE. Therefore:
 
-Current workout session logged by the athlete:
+- NEVER compare actual weight vs planned weight (planned is always 0, ignore it)
+- DO compare actual weight vs PREVIOUS session weight (weight_change field)
+- DO compare actual RPE vs planned RPE (was it harder than expected?)
+- DO compare actual reps vs planned reps (did they complete all reps?)
+- DO compare actual sets vs planned sets (did they skip sets?)
+
+Current session with comparisons:
 {current_session}
 
-Last 10 sessions (most recent first):
+Last 10 sessions for trend analysis:
 {recent_sessions}
 
-What the plan expected this week:
+Plan context:
 {plan_context}
 
-Write a structured summary covering:
-1. Performance trend per exercise — is weight/reps going up, down, or flat?
-2. Actual volume vs planned volume — over or under?
-3. RPE trend — is the athlete finding workouts harder or easier over time?
-4. Any muscle groups skipped or undertrained recently?
-5. Session completion rate — how many planned vs completed?
+Write a structured data summary covering:
+1. RPE comparison — was each exercise harder or easier than planned RPE target?
+2. Weight trend — did weight go up, down, or stay same vs previous same session?
+   (use weight_change field — positive = increased, negative = dropped, null = first time)
+3. Rep completion — did athlete hit planned reps on each exercise?
+4. Set completion — did athlete complete all planned sets?
+5. Volume — total actual sets vs total planned sets
+6. Skip pattern — how many recent sessions were skipped?
 
 Return plain text summary only. Be specific with numbers.
 """,
@@ -82,39 +91,33 @@ REASONER_PROMPT = PromptTemplate(
     template="""
 You are the Reasoner agent in Freeko's Anomaly Detective system.
 
-Agent 1 has already analysed the raw data and written this summary:
+Data summary from Agent 1:
 {data_summary}
 
-Plan context (what was expected):
+Plan context:
 {plan_context}
 
-Your job is to detect training anomalies from this summary and give one clear suggestion.
+Anomaly detection rules:
+- weight_change < -5kg on same exercise vs last session → flag as lift_drop
+- actual_rpe > planned_rpe + 2 points → flag as high_rpe_trend
+- actual_reps < planned_reps on 2+ exercises → flag as underperformance
+- actual_sets < planned_sets on 2+ exercises → flag as volume_drop
+- is_deload = true AND all numbers look lower → NOT an anomaly, this is correct
+- 2+ skipped sessions in recent history → flag as skipped_sessions
+- RPE increasing across 3+ consecutive sessions → flag as overtraining
+- One muscle group volume >> others significantly → flag as muscle_imbalance
 
-Possible anomaly flags you can use:
-- shoulder_fatigue
-- bench_drop
-- squat_drop
-- deadlift_drop
-- overtraining
-- undertraining
-- muscle_imbalance
-- high_rpe_trend
-- skipped_sessions
-- volume_spike
-- volume_drop
-- no_progression
+Flags available:
+lift_drop, high_rpe_trend, underperformance, volume_drop, volume_spike,
+skipped_sessions, overtraining, muscle_imbalance, bench_drop, squat_drop,
+deadlift_drop, shoulder_fatigue
 
-Rules:
-- Only flag something if there is clear evidence in the summary.
-- If nothing is wrong, set anomaly_detected to false and flags to empty list.
-- suggestion must be one concrete actionable sentence for the athlete.
-
-Return ONLY valid JSON — no explanation, no markdown:
+Return ONLY valid JSON:
 {{
-  "anomaly_detected": true,
-  "flags": ["bench_drop", "shoulder_fatigue"],
-  "summary": "Bench press has dropped 10kg over 3 sessions while shoulder RPE is trending high.",
-  "suggestion": "Reduce pressing volume by 30% this week and add 2 sets of face pulls to address shoulder fatigue."
+  "anomaly_detected": true or false,
+  "flags": ["high_rpe_trend", "lift_drop"],
+  "summary": "Bench press dropped 8kg vs last push session while RPE increased from 7 to 9.",
+  "suggestion": "Consider reducing bench volume by 20% next session and check recovery."
 }}
 """,
 )

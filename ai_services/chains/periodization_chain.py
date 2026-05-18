@@ -60,14 +60,9 @@ Use exactly this structure:
             {{
               "day_label": "Monday - Push",
               "exercises": [
-                {{
-                  "name": "Bench Press",
-                  "sets": 4,
-                  "reps": 10,
-                  "weight": 0,
-                  "rpe": 7,
-                  "notes": "Focus on controlled descent",
-                  "completed": false
+                {{"name": "Bench Press", "sets": 4, "reps": 10, "weight": 0, "rpe": 7,
+                "notes": "Use weight where RPE lands at 7. Increase weight if easier than RPE 6.",
+                "completed": false
                 }}
               ]
             }}

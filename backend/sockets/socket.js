@@ -2,6 +2,8 @@ import ChatMessage from "../models/ChatMessage.js";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 
+const onlineUsers = new Set()
+
 export const registerSocketHandlers = (io) => {
 
   // Authenticate every socket connection via JWT
@@ -44,6 +46,18 @@ export const registerSocketHandlers = (io) => {
         socket.emit("error", { message: err.message });
       }
     });
+
+      const userId = socket.user.id
+
+      onlineUsers.add(userId)
+
+      io.emit("online_users", Array.from(onlineUsers))
+
+      socket.on("disconnect", () => {
+        onlineUsers.delete(userId)
+
+        io.emit("online_users", Array.from(onlineUsers))
+      })
 
     // ── Fetch message history for a plan ───────────────────────
     socket.on("get_messages", async ({ planId, page = 1, limit = 30 }) => {

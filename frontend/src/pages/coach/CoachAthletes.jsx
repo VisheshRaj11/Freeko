@@ -135,7 +135,7 @@ function AthleteCard({ athlete, onGeneratePlan }) {
             Generate Plan
           </motion.button>
           <Link
-            to={`/coach/chat/plan-${athlete._id}`}
+            to={`/coach/chat`}
             className="flex items-center justify-center px-3 py-2.5 rounded-xl
                        btn-glass text-xs"
           >
@@ -196,7 +196,6 @@ function UnassignedRow({ athlete, onAssign, assigning }) {
 // ── Main ───────────────────────────────────────────────────────
 export default function CoachAthletes() {
   const { user }                        = useAuthStore()
-  const [roster,     setRoster]         = useState([])
   const [unassigned, setUnassigned]     = useState([])
   const [loading,    setLoading]        = useState(true)
   const [tab,        setTab]            = useState("roster")
@@ -204,6 +203,7 @@ export default function CoachAthletes() {
   const [assigning,  setAssigning]      = useState(null)
   const [showPlanModal, setShowPlanModal] = useState(false)
   const [selectedAthlete, setSelectedAthlete] = useState(null)
+  const [roster,     setRoster]         = useState([])
 
   // Fetch roster
   const fetchRoster = async () => {

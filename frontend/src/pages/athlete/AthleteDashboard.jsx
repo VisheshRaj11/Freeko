@@ -7,7 +7,8 @@ import {
   Activity, AlertTriangle, Play,
   MessageSquare, BarChart3, Shield, Loader2,
   SkipForward,
-  Check
+  Check,
+  BedDouble
 } from "lucide-react"
 import { useAuthStore } from "../../../store/authStore"
 import api from "../../lib/axios"
@@ -27,6 +28,7 @@ function WeekStrip({ sessions }) {
   const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
   const today = new Date().getDay() // 0=Sun,1=Mon...
   const todayIdx = today === 0 ? 6 : today - 1
+  console.log(todayIdx);
 
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -148,6 +150,7 @@ export default function AthleteDashboard() {
   const [sessions, setSessions] = useState([])
   const [anomaly,  setAnomaly]  = useState(null)
   const [todaySession, setTodaySession] = useState(null);
+  console.log(todaySession)
   // const {setCompletion, toggleSet, isExerciseCompleted} = useWorkoutStore();
   const [showSkipScreen, setShowSkipScreen] = useState(false)
   console.log(todaySession);
@@ -186,12 +189,30 @@ export default function AthleteDashboard() {
         setSessions(recentSessions)
   
         // 4. Find today's planned session
-        const today      = new Date()
-        const todayName  = today.toLocaleDateString("en-US", { weekday: "long" })
-        const todaySess  = recentSessions.find(
-          (s) =>
-            s.dayLabel?.toLowerCase().includes(todayName.toLowerCase())
-        )
+        // ✅ New — matches by actual date OR by weekday name only for planned sessions
+        const today     = new Date()
+        const todayName = today.toLocaleDateString("en-US", { weekday: "long" })
+
+        const todaySess = recentSessions.find((s) => {
+          // If session has a loggedAt date, check if it's actually today
+          if (s.loggedAt) {
+            const sessionDate = new Date(s.loggedAt)
+            const isSameDay =
+              sessionDate.getDate()     === today.getDate()     &&
+              sessionDate.getMonth()    === today.getMonth()    &&
+              sessionDate.getFullYear() === today.getFullYear()
+            return isSameDay
+          }
+
+          // For planned sessions (no loggedAt yet), match by weekday name
+          // BUT only if it's actually the right day of week
+          if (s.status === "planned" || s.status === "in_progress") {
+            return s.dayLabel?.toLowerCase().includes(todayName.toLowerCase())
+          }
+
+          return false
+        })
+
         setTodaySession(todaySess || null)
   
         // 5. Fetch latest anomaly for this athlete
@@ -824,11 +845,26 @@ export default function AthleteDashboard() {
               </div>
             )}
 
-            {!todaySession && !masterPlan && (
-              <p className="text-center text-sm mt-4"
-                 style={{ color: "var(--text-muted)" }}>
-                No session planned for today
-              </p>
+            {/* // ✅ New — shows different message depending on whether plan exists */}
+            {!todaySession && (
+              <div className="flex flex-col items-center gap-3 py-6 text-center">
+                <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10
+                                flex items-center justify-center">
+                  <BedDouble size={20} style={{ color: "var(--text-dim)" }} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold mb-1"
+                    style={{ color: "var(--text)" }}>
+                    {masterPlan ? <> Rest Day</> : "No active plan yet"}
+                  </p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    {masterPlan
+                      ? "No session scheduled for today. Recover well and come back stronger."
+                      : "Your coach will generate your personalized AI plan soon."
+                    }
+                  </p>
+                </div>
+              </div>
             )}
           </motion.div>
 

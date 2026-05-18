@@ -88,7 +88,7 @@ export const getMicroPlans = async(req, res) => {
   if(!coachId) return res.json("coach and athlete are mandatory");
   try {
     const data = await MasterPlan.find({coachId});
-    console.log(data);
+    // console.log(data);
     return res.json({plan: data});
   } catch (error) {
       res.status(500).json({ message: error.message });

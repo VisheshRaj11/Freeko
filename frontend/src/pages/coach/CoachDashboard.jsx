@@ -173,7 +173,7 @@ function AthleteCard({ athlete, delay }) {
           </Link>
         )}
         {athlete.planId && (
-          <Link to={`/coach/chat/${athlete.planId}`}
+          <Link to={`/coach/chat`}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
                            text-xs font-semibold transition-all hover:bg-green/10
                            hover:text-green border border-transparent
@@ -278,7 +278,18 @@ export default function CoachDashboard() {
 
   const [chartData,     setChartData]     = useState([])
   const [totalSessions, setTotalSessions] = useState(0)
-
+  const [roster,     setRoster]         = useState([])
+  
+    // Fetch roster
+  useEffect(() => {
+    const fetchRoster = async () => {
+    try {
+      const res = await api.get(`/coach/${user.id}/athletes`)
+      setRoster(res.data)
+    } catch { setRoster([]) }
+  }
+  fetchRoster();
+  },[user.id])
   useEffect(() => {
     const load = async () => {
       try {
@@ -286,27 +297,42 @@ export default function CoachDashboard() {
         const { data: athleteProfiles } = await api.get(
           `/coach/${user.id}/athletes`
         )
+        // console.log(athleteProfiles[0])
 
         // For each athlete, try to fetch their active plan
         const enriched = await Promise.all(
           athleteProfiles.map(async (ap) => {
+            // console.log(ap);
             try {
               const { data: plans } = await api.get(
-                `/plan/athlete/${ap.userId._id}`
+                `/plan/athlete/${ap._id}`
               )
+              // console.log(plans)
               const active = plans.find((p) => p.status === "active") || plans[0]
+              console.log(active)
 
               // Calculate rough progress
+              const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+              const startTime = active?.startDate
+              ? new Date(active.startDate).getTime()
+              : null
+
+              const endTime =
+              startTime && active?.totalWeeks
+              ? startTime + active.totalWeeks * WEEK_MS
+              : null
+
+              const endDate = endTime ? new Date(endTime) : null
               let progress = 0
               if (active) {
                 const elapsed = Date.now() - new Date(active.startDate).getTime()
-                const total   = new Date(active.endDate).getTime() -
+                const total   = new Date(endDate).getTime() -
                                 new Date(active.startDate).getTime()
                 progress = Math.min(100, Math.round((elapsed / total) * 100))
               }
 
               return {
-                id:         ap.userId._id,
+                id:         ap._id,
                 name:       ap.userId.name,
                 email:      ap.userId.email,
                 planId:     active?._id     || null,
@@ -333,7 +359,9 @@ export default function CoachDashboard() {
         await Promise.all(
         enriched.map(async (a) => {
           try {
+            // console.log(a)
             const { data: sessions } = await api.get(`/workout/athlete/${a.id}`)
+            console.log(sessions)
             sessions.forEach((s) => {
               if (s.status !== "completed") return
               const date    = new Date(s.loggedAt)
@@ -476,7 +504,7 @@ export default function CoachDashboard() {
         <StatCard
           icon={Activity}
           label="Active Plans"
-          value={activeCount}
+          value={roster.length}
           sub={`${totalAthletes - activeCount} pending`}
           color="#3b82f6"
           delay={2}
@@ -709,7 +737,7 @@ export default function CoachDashboard() {
                 { icon: Plus,          label: "Generate New Plan",    to: "/coach/athletes",   color: "var(--green)"   },
                 { icon: Users,         label: "Manage Athletes",      to: "/coach/athletes",   color: "#3b82f6"        },
                 { icon: FileText,      label: "View All Reports",     to: "/coach/reports",    color: "#8b5cf6"        },
-                { icon: MessageSquare, label: "Open Chat",            to: "/coach/chat/select",color: "#f59e0b"        },
+                { icon: MessageSquare, label: "Open Chat",            to: "/coach/chat",color: "#f59e0b"        },
               ].map(({ icon: Icon, label, to, color }) => (
                 <Link key={label} to={to}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl

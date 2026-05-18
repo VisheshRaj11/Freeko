@@ -223,7 +223,7 @@ export default function CoachChat() {
     const load = async () => {
       try {
         const { data: profiles } = await api.get(`/coach/${user.id}/athletes`)
-        console.log(profiles[0])
+        // console.log(profiles[0])
         const enriched = await Promise.all(
           profiles.map(async (ap) => {
             try {
@@ -296,6 +296,33 @@ export default function CoachChat() {
     socket.on("connect", () => {
       socket.emit("join_plan_room", activeAthlete.planId)
       socket.emit("get_messages", { planId: activeAthlete.planId, page: 1 })
+    })
+
+   socket.on("online_users", (onlineUserIds) => {
+
+      console.log("ONLINE IDS:", onlineUserIds)
+
+      setAthletes((prev) =>
+          prev.map((a) => {
+            const isOnline = onlineUserIds.includes(String(a.id))
+
+            console.log(a.name, a.id, isOnline)
+
+            return {
+              ...a,
+              online: isOnline,
+            }
+          })
+        )
+
+        setActive((prev) =>
+          prev
+            ? {
+                ...prev,
+                online: onlineUserIds.includes(String(prev.id)),
+              }
+            : prev
+        )
     })
 
     socket.on("message_history", (msgs) => {
