@@ -8,7 +8,8 @@ import {
   MessageSquare, BarChart3, Shield, Loader2,
   SkipForward,
   Check,
-  BedDouble
+  BedDouble,
+  BicepsFlexed
 } from "lucide-react"
 import { useAuthStore } from "../../../store/authStore"
 import api from "../../lib/axios"
@@ -570,9 +571,9 @@ export default function AthleteDashboard() {
             </span>
           </div>
           <h1 className="font-display font-900 text-4xl sm:text-5xl uppercase
-                         tracking-tight"
+                         tracking-tight flex items-center gap-2"
               style={{ color: "var(--text)" }}>
-            GM, {user?.name?.split(" ")[0] || "Athlete"} 💪
+            GM, {user?.name?.split(" ")[0] || "Athlete"} <BicepsFlexed size={38} color="lightGreen"/>
           </h1>
           <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
             {currentMeso?.focus

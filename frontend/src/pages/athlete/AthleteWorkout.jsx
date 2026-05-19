@@ -665,6 +665,7 @@ function WorkoutTimer({ running }) {
 
 // ── Main ───────────────────────────────────────────────────────
 export default function AthleteWorkout() {
+  const loggedDataRef = useRef({})
   const { id }     = useParams()
   const navigate   = useNavigate()
   const [session, setSession]  = useState(null)
@@ -698,7 +699,7 @@ export default function AthleteWorkout() {
   const min = Math.floor(elapsed / 60)
   const sec = elapsed % 60
 
-  const completedCount = exercises.filter((e) => e.completed).length
+  const completedCount = Object.keys(loggedDataRef.current).length
  const totalProgress =
   exercises.length > 0
     ? completedCount / exercises.length
@@ -708,18 +709,47 @@ export default function AthleteWorkout() {
 
     const exercise = exercises[index]
 
-    setExercises((prev) =>
-      prev.map((e, i) =>
-        i === index ? { ...e, completed: true, logged_sets: setsData } : e
-      )
+     const avgWeight = setsData.length > 0
+    ? Math.round(setsData.reduce((t, s) => t + (s.weight || 0), 0) / setsData.length)
+    : exercise.weight
+
+  const avgReps = setsData.length > 0
+    ? Math.round(setsData.reduce((t, s) => t + (s.reps || 0), 0) / setsData.length)
+    : exercise.reps
+
+  const avgRpe = setsData.length > 0
+    ? parseFloat((setsData.reduce((t, s) => t + (s.rpe || 0), 0) / setsData.length).toFixed(1))
+    : exercise.rpe
+
+  // Store the real data in ref for use in handleFinish
+  loggedDataRef.current[exercise.name] = {
+    weight:     avgWeight,
+    reps:       avgReps,
+    rpe:        avgRpe,
+    sets_done:  setsData.length,
+    completed:  true,
+    sets_detail: setsData,
+  }
+
+  setExercises((prev) =>
+    prev.map((e, i) =>
+      i === index
+        ? {
+            ...e,
+            completed: true,
+            weight:    avgWeight,  // update with actual weight logged
+            reps:      avgReps,    // update with actual reps logged
+            rpe:       avgRpe,     // update with actual rpe logged
+            logged_sets: setsData,
+          }
+        : e
     )
+  )
 
     try {
-
-    await api.patch(
-      `/workout/${session._id}/exercise/${exercise._id}`
-    )
-
+      await api.patch(
+        `/workout/${session._id}/exercise/${exercise._id}`
+      )
   } catch (err) {
 
     console.error(err)
@@ -735,16 +765,34 @@ export default function AthleteWorkout() {
     clearInterval(timerRef.current)
 
     try {
+      const exercisePayLoad = exercises.map((ex) => {
+        const loggedData = loggedDataRef.current[ex.name]
+        if (loggedData) {
+        // Exercise was completed — use real logged values
+        return {
+          name:      ex.name,
+          sets:      loggedData.sets_done,    // actual sets completed
+          reps:      loggedData.reps,         // actual avg reps
+          weight:    loggedData.weight,       // actual avg weight
+          rpe:       loggedData.rpe,          // actual avg rpe
+          completed: true,
+        }
+      } else {
+        // Exercise was skipped — send with 0s so AI knows it was missed
+        return {
+          name:      ex.name,
+          sets:      0,           // ← 0 sets done (skipped)
+          reps:      0,           // ← 0 reps
+          weight:    0,
+          rpe:       0,
+          completed: false,       // ← clearly not completed
+        }
+      }
+    })
+
       // Call Node.js which calls FastAPI anomaly detection
       const res = await api.post(`/workout/${session._id}/log`, {
-        exercises: exercises.map((e) => ({
-          name:      e.name,
-          sets:      e.sets,
-          reps:      e.reps,
-          weight:    e.weight,
-          rpe:       e.rpe,
-          completed: e.completed,
-        })),
+        exercises: exercisePayLoad
       })
       setAnomaly(res.data.anomalyReport)
     } catch {
@@ -816,7 +864,7 @@ export default function AthleteWorkout() {
               )}
 
               {/* Start / Finish button */}
-              {session === "idle" ? (
+              {sessionState === "idle" ? (
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
