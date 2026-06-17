@@ -8,7 +8,8 @@ import Microcycle    from "../models/Microcycle.js";
 
 const AI = process.env.AI_SERVICE_URL;
 
-export const generateWeeklyReport = async (planId, weekNumber) => {
+export const generateWeeklyReport = async (req, res) => {
+  const {planId, weekNumber} = req.body
   try {
     const plan = await MasterPlan.findById(planId);
     if (!plan) return;

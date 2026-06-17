@@ -197,6 +197,8 @@ export default function AthleteOnboarding() {
     setLoading(true)
     setError(null)
     try {
+      console.log(user.id);
+      console.log(form);
       await api.patch(`/athlete/${user.id}`, {
         fitnessLevel:    form.fitnessLevel,
         goals:           form.goals,

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from chains.periodization_chain import run_periodization_chain
+import traceback
 
 
 router = APIRouter()
@@ -32,6 +33,7 @@ async def generate_plan(body: PlanRequest):
     Returns the plan as JSON back to Node.js.
     """
     try:
+        # print(body)
         result = run_periodization_chain(
             athlete=body.athlete.model_dump(),
             total_weeks=body.totalWeeks,
@@ -40,4 +42,8 @@ async def generate_plan(body: PlanRequest):
         return result
 
     except Exception as e:
+        print(str(e))
+
+        traceback.print_exc()
+
         raise HTTPException(status_code=500, detail=str(e))

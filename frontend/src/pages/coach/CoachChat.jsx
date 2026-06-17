@@ -118,7 +118,7 @@ function AiSummaryPanel({ planId, athleteId, weekNumber, onClose }) {
       } catch {
         // If no report yet, generate one on the fly
         try {
-          const res = await api.post(`/report/generate`, {
+          const res = await api.post(`/report/generate/${planId}/${weekNumber}`, {
             planId, weekNumber
           })
           setSummary(res.data)

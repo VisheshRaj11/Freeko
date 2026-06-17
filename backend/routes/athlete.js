@@ -20,16 +20,19 @@ router.get('/unassigned',async(req, res) => {
 })
 
 router.get('/:userId', async(req, res) => {
-    console.log(req.params);
-    const p = await AthleteProfile.findOne({userId: req.params.userId})
+    // console.log(req.params.userId);
+    const p = await AthleteProfile.findOne({_id: req.params.userId})
     .populate("userId", "name email");
 
+    console.log(p);
     if(!p) return res.status(404).json({message: "Not found"});
     res.json(p);
 })
 
 router.patch('/:userId', async( req, res) => {
-    const p = await AthleteProfile.findOneAndUpdate({_id: req.params.userId}, req.body, {new: true});
+    // console.log(req.params.userId);
+    // console.log(req.body);
+    const p = await AthleteProfile.findOneAndUpdate({userId: req.params.userId}, req.body, {new: true});
     console.log(p);
     res.json(p);
 })

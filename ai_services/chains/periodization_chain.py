@@ -6,29 +6,23 @@ from utils.llm import get_llm
 
 PLAN_PROMPT = PromptTemplate(
     input_variables=["athlete_json", "total_weeks", "start_date"],
-    template="""
-You are an elite strength and conditioning coach AI for Freeko, a gym coaching platform.
+    # In periodization_chain.py — replace template
 
-Generate a complete {total_weeks}-week periodized training program starting from {start_date}.
+template="""
+You are an elite strength coach AI for Freeko.
 
-Here is the athlete's profile:
+Generate a {total_weeks}-week periodized program skeleton for:
 {athlete_json}
 
-Follow these rules strictly:
-- Split the program into 2-4 mesocycles (training blocks).
-- Each mesocycle must have a clear focus: hypertrophy, strength, power, or peak/taper.
-- Each mesocycle contains multiple microcycles (one per week).
-- Every 4th or 5th week must be a deload week (is_deload: true).
-- Each microcycle has 3-5 workout sessions per week.
-- Each session has 4-6 exercises with sets, reps, weight (default 0), rpe, and notes.
-- Volume targets (sets per week per muscle group) must be progressive across weeks.
-- Directly address the athlete's weaknesses and goals in the plan.
+IMPORTANT: To keep response fast and concise:
+- Generate mesocycles and microcycles with themes only
+- For sessions, list exercise NAMES and sets/reps/rpe only
+- NO long notes, NO descriptions — just the data structure
+- Keep exercise names short (e.g. "Bench Press" not "Barbell Bench Press on Flat Bench")
 
-Return ONLY valid JSON — no explanation, no markdown, no extra text.
-Use exactly this structure:
-
+Return ONLY valid JSON:
 {{
-  "prompt_used": "brief one line rationale for this plan",
+  "prompt_used": "one line",
   "mesocycles": [
     {{
       "order": 1,
@@ -37,33 +31,21 @@ Use exactly this structure:
       "week_start": 1,
       "week_end": 4,
       "total_weeks": 4,
-      STRICT RULES:
-      - intensity_level MUST be one of ONLY these exact strings: "low", "moderate", "high", "peak"
-      - Week 1-2 of any block → "low" or "moderate"
-      - Peak/competition weeks → "peak"
-      - Deload weeks → "low"
-      - Do NOT write anything else for intensity_level under any circumstance
+      "intensity_level": "moderate",
       "microcycles": [
         {{
           "week_number": 1,
           "is_deload": false,
-          "theme": "intro volume week",
-          "volume_targets": {{
-            "chest": 12,
-            "back": 14,
-            "legs": 16,
-            "shoulders": 10,
-            "arms": 8,
-            "core": 6
-          }},
+          "theme": "intro volume",
+          "volume_targets": {{"chest":12,"back":14,"legs":16,"shoulders":10,"arms":8,"core":6}},
           "sessions": [
             {{
               "day_label": "Monday - Push",
               "exercises": [
-                {{"name": "Bench Press", "sets": 4, "reps": 10, "weight": 0, "rpe": 7,
-                "notes": "Use weight where RPE lands at 7. Increase weight if easier than RPE 6.",
-                "completed": false
-                }}
+                {{"name":"Bench Press","sets":4,"reps":8,"weight":0,"rpe":7,"notes":"","completed":false}},
+                {{"name":"OHP","sets":3,"reps":10,"weight":0,"rpe":7,"notes":"","completed":false}},
+                {{"name":"Incline DB Press","sets":3,"reps":12,"weight":0,"rpe":8,"notes":"","completed":false}},
+                {{"name":"Cable Fly","sets":3,"reps":15,"weight":0,"rpe":7,"notes":"","completed":false}}
               ]
             }}
           ]
@@ -72,6 +54,12 @@ Use exactly this structure:
     }}
   ]
 }}
+
+Rules:
+- Empty string for notes (keeps tokens low)
+- weight always 0
+- 3-4 exercises per session maximum
+- 3-5 sessions per week maximum
 """,
 )
 

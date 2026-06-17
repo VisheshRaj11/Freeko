@@ -163,7 +163,7 @@ function AthleteCard({ athlete, delay }) {
       <div className="flex items-center gap-2 mt-4 pt-4 border-t"
            style={{ borderColor: "var(--glass-border)" }}>
         {athlete.planId && (
-          <Link to={`/coach/plan/${athlete.planId}`}
+          <Link to={`/coach/plan/fullPlan/${athlete.planId}`}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
                            text-xs font-semibold transition-all hover:bg-green/10
                            hover:text-green border border-transparent
@@ -312,24 +312,54 @@ export default function CoachDashboard() {
               console.log(active)
 
               // Calculate rough progress
-              const WEEK_MS = 7 * 24 * 60 * 60 * 1000
-              const startTime = active?.startDate
-              ? new Date(active.startDate).getTime()
-              : null
+              // Calculate progress based on completed workouts
 
-              const endTime =
-              startTime && active?.totalWeeks
-              ? startTime + active.totalWeeks * WEEK_MS
-              : null
+              // Calculate progress based on completed exercises
 
-              const endDate = endTime ? new Date(endTime) : null
+// Calculate progress from completed workout sessions
+
               let progress = 0
+
               if (active) {
-                const elapsed = Date.now() - new Date(active.startDate).getTime()
-                const total   = new Date(endDate).getTime() -
-                                new Date(active.startDate).getTime()
-                progress = Math.min(100, Math.round((elapsed / total) * 100))
-              }
+
+                try {
+
+                  const { data: sessions } = await api.get(
+                    `/workout/athlete/${ap._id}`
+                  )
+
+                  // Count completed sessions
+                  const completedSessions = sessions.filter(
+                    session => session.status === "completed"
+                  ).length
+
+                  // Change this if athletes don't train every day
+                  const DAYS_PER_WEEK = 7
+
+                  const expectedSessions =
+                    (active.totalWeeks || 0) * DAYS_PER_WEEK
+
+                  if (expectedSessions > 0) {
+
+                    progress = Math.round(
+                      (completedSessions / expectedSessions) * 100
+                    )
+
+                    }
+
+                    progress = Math.min(100, progress)
+
+                  }
+
+                  catch (err) {
+
+                    console.error(err)
+
+                    progress = 0
+
+                  }
+
+                }
 
               return {
                 id:         ap._id,

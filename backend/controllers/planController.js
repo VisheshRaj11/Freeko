@@ -23,11 +23,13 @@ const sanitizeIntensity = (level) => {
 
 export const generatePlan = async (req, res) => {
   const { athleteId, title, startDate, totalWeeks } = req.body;
+  console.log(req.body);
   try {
     const profile = await AthleteProfile.findOne({ _id: athleteId });
-
+    // console.log(profile);
     if (!profile) return res.status(404).json({ message: "Athlete not found" });
-
+    // console.log("Ai responed")
+    console.log(AI);
     const { data } = await axios.post(`${AI}/generate-plan`, {
       athlete: {
         fitnessLevel:    profile.fitnessLevel,
@@ -41,6 +43,8 @@ export const generatePlan = async (req, res) => {
       startDate,
     });
 
+    // console.log(data);
+
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + totalWeeks * 7);
 
@@ -50,30 +54,79 @@ export const generatePlan = async (req, res) => {
       aiMetadata: { model: "gemini-2.5-flash", generatedAt: new Date() },
     });
 
-    for (const meso of data.mesocycles) {
-      const mesoDoc = await Mesocycle.create({
-        masterPlanId: plan._id, name: meso.name,
-        focus: meso.focus, weekStart: meso.week_start,
-        weekEnd: meso.week_end, totalWeeks: meso.total_weeks,
-        intensityLevel: sanitizeIntensity(meso.intensity_level), order: meso.order,
-      });
+    // for (const meso of data.mesocycles) {
+    //   const mesoDoc = await Mesocycle.create({
+    //     masterPlanId: plan._id, name: meso.name,
+    //     focus: meso.focus, weekStart: meso.week_start,
+    //     weekEnd: meso.week_end, totalWeeks: meso.total_weeks,
+    //     intensityLevel: sanitizeIntensity(meso.intensity_level), order: meso.order,
+    //   });
 
-      for (const micro of meso.microcycles) {
-        const microDoc = await Microcycle.create({
-          mesocycleId: mesoDoc._id, weekNumber: micro.week_number,
-          isDeload: micro.is_deload, theme: micro.theme,
+    //   for (const micro of meso.microcycles) {
+    //     const microDoc = await Microcycle.create({
+    //       mesocycleId: mesoDoc._id, weekNumber: micro.week_number,
+    //       isDeload: micro.is_deload, theme: micro.theme,
+    //       volumeTargets: micro.volume_targets,
+    //     });
+
+    //     for (const session of micro.sessions) {
+    //       await WorkoutSession.create({
+    //         microcycleId: microDoc._id, athleteId,
+    //         dayLabel: session.day_label, status: "planned",
+    //         exercises: session.exercises,
+    //       });
+    //     }
+    //   }
+    // }
+    
+        const mesoInserts = data.mesocycles.map((meso, idx) => ({
+      masterPlanId:   plan._id,
+      name:           meso.name,
+      focus:          meso.focus,
+      weekStart:      meso.week_start,
+      weekEnd:        meso.week_end,
+      totalWeeks:     meso.total_weeks,
+      intensityLevel: sanitizeIntensity(meso.intensity_level),
+      order:          meso.order || idx + 1,
+    }))
+
+    const mesoDocs = await Mesocycle.insertMany(mesoInserts)
+
+    // Create all microcycles at once
+    const microInserts = []
+    data.mesocycles.forEach((meso, i) => {
+      meso.microcycles?.forEach((micro) => {
+        microInserts.push({
+          mesocycleId:   mesoDocs[i]._id,
+          weekNumber:    micro.week_number,
+          isDeload:      micro.is_deload,
+          theme:         micro.theme,
           volumeTargets: micro.volume_targets,
-        });
+        })
+      })
+    })
 
-        for (const session of micro.sessions) {
-          await WorkoutSession.create({
-            microcycleId: microDoc._id, athleteId,
-            dayLabel: session.day_label, status: "planned",
-            exercises: session.exercises,
-          });
-        }
-      }
-    }
+    const microDocs = await Microcycle.insertMany(microInserts)
+
+    // Create all sessions at once
+    const sessionInserts = []
+    let microIdx = 0
+    data.mesocycles.forEach((meso) => {
+      meso.microcycles?.forEach((micro) => {
+        micro.sessions?.forEach((session) => {
+          sessionInserts.push({
+            microcycleId: microDocs[microIdx]._id,
+            athleteId,
+            dayLabel:     session.day_label,
+            status:       "planned",
+            exercises:    session.exercises,
+          })
+        })
+        microIdx++
+      })
+    })
+
+    await WorkoutSession.insertMany(sessionInserts)
 
     res.status(201).json({ message: "Plan generated", planId: plan._id });
   } catch (err) {
@@ -102,7 +155,7 @@ export const getPlan = async (req, res) => {
       .populate("coachId", "name email")
       .populate("athleteId", "name email");
 
-    // console.log(plan);
+    console.log(plan);
 
     if (!plan) return res.status(404).json({ message: "Not found" });
 
@@ -131,8 +184,10 @@ export const getPlan = async (req, res) => {
 
 export const getAthletePlans = async (req, res) => {
   try {
+    // console.log(req.params)
     const plans = await MasterPlan.find({ athleteId: req.params.athleteId })
       .populate("coachId", "name email").sort("-createdAt");
+      console.log(plans)
     res.json(plans);
   } catch (err) {
     res.status(500).json({ message: err.message });

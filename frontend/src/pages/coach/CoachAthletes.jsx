@@ -176,8 +176,8 @@ function UnassignedRow({ athlete, onAssign, assigning }) {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => onAssign(athlete._id)}
-        disabled={assigning === athlete._id}
+        onClick={() => onAssign(athlete.userId)}
+        disabled={assigning === athlete.userId}
         className="flex items-center gap-2 px-4 py-2 rounded-xl btn-green
                    text-xs font-bold flex-shrink-0 disabled:opacity-50"
       >
@@ -232,10 +232,11 @@ export default function CoachAthletes() {
   }, [])
 
   const handleAssign = async (athleteId) => {
+    // console.log(user.id);
+    console.log(athleteId._id);
     setAssigning(athleteId)
-    console.log(user.id);
     try {
-      await api.patch(`/athlete/${athleteId}`, {
+      await api.patch(`/athlete/${athleteId._id}`, {
         assignedCoachId: user.id
       })
       await Promise.all([fetchRoster(), fetchUnassigned()]);
@@ -445,7 +446,7 @@ export default function CoachAthletes() {
                 </motion.p>
                 {filteredUnassigned.map((athlete) => (
                   <UnassignedRow
-                    key={athlete._id}
+                    key={athlete.userId}
                     athlete={athlete}
                     onAssign={handleAssign}
                     assigning={assigning}
