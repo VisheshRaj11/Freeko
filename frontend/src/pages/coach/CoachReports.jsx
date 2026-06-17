@@ -14,6 +14,8 @@ import { useAuthStore } from "../../../store/authStore"
 import api from "../../lib/axios"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
+import html2canvas from "html2canvas"
+import { useRef } from "react"
 
 const fadeUp = {
   hidden:  { opacity: 0, y: 20 },
@@ -46,6 +48,7 @@ const ChartTooltip = ({ active, payload, label }) => {
 // ── Report card ────────────────────────────────────────────────
 function ReportCard({ report }) {
   const [open, setOpen] = useState(false)
+  const chartRef = useRef(null)
   const hasAnomaly = report.anomalyFlags?.length > 0 ||
                      report.anomalyInsights?.toLowerCase().includes("detected") ||
                      report.anomalyInsights?.toLowerCase().includes("flag")
@@ -71,73 +74,82 @@ function ReportCard({ report }) {
     return { day, volume: totalSets, rpe: avgRpe }
   })
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
 
   const doc = new jsPDF()
 
-  // ---------------- HEADER ----------------
+  // ---------- TITLE ----------
 
-  doc.setFontSize(22)
+  doc.setTextColor(57,255,20)
+
+  doc.setFontSize(24)
 
   doc.text(
-    "AI WEEKLY REPORT",
+    "GYM AI WEEKLY REPORT",
     14,
     20
   )
+
+  doc.setTextColor(0,0,0)
+
+  // ---------- ATHLETE INFO ----------
 
   doc.setFontSize(12)
 
   doc.text(
     `Athlete : ${report.athleteName}`,
     14,
-    35
+    40
   )
 
   doc.text(
     `Week : ${report.weekNumber}`,
     14,
-    43
+    48
   )
 
   doc.text(
     `Plan : ${report.planTitle}`,
     14,
-    51
+    56
   )
 
   doc.text(
     `Generated : ${
-      report.generatedAt
-        ? new Date(
-            report.generatedAt
-          ).toLocaleDateString()
-        : "-"
+      new Date(
+        report.generatedAt
+      ).toLocaleDateString()
     }`,
     14,
-    59
+    64
   )
 
+  // ---------- SUMMARY ----------
 
-  // ---------------- SUMMARY ----------------
+  let y = 80
 
-  doc.setFontSize(16)
+  doc.setFontSize(18)
 
   doc.text(
     "Week Summary",
     14,
-    75
+    y
   )
 
-  let y = 85
+  y += 10
 
   report.summaryBullets?.forEach((bullet)=>{
 
     doc.setFontSize(11)
 
     doc.text(
+
       `• ${bullet}`,
+
       18,
+
       y
+
     )
 
     y += 8
@@ -145,11 +157,11 @@ function ReportCard({ report }) {
   })
 
 
-  // ---------------- COMPLIANCE ----------------
+  // ---------- COMPLIANCE ----------
 
   y += 8
 
-  doc.setFontSize(16)
+  doc.setFontSize(18)
 
   doc.text(
     "Compliance",
@@ -159,48 +171,71 @@ function ReportCard({ report }) {
 
   y += 10
 
+  const compliance = Math.round(
+
+    (
+      report.sessionsCompleted /
+
+      Math.max(
+        report.sessionsTotal,
+        1
+      )
+
+    ) * 100
+
+  )
+
   doc.setFontSize(11)
 
   doc.text(
+
     `Completed Sessions : ${report.sessionsCompleted}`,
+
     18,
+
     y
+
   )
 
   y += 8
 
   doc.text(
+
     `Total Sessions : ${report.sessionsTotal}`,
+
     18,
+
     y
+
   )
 
   y += 8
 
   doc.text(
-    `Compliance : ${
-      Math.round(
-        (
-          report.sessionsCompleted /
-          Math.max(report.sessionsTotal,1)
-        ) * 100
-      )
-    }%`,
+
+    `Compliance : ${compliance}%`,
+
     18,
+
     y
+
   )
 
 
-  // ---------------- ANOMALIES ----------------
+  // ---------- ANOMALIES ----------
 
-  y += 18
+  y += 20
 
-  doc.setFontSize(16)
+  doc.setFontSize(18)
 
   doc.text(
-    "Anomalies",
+
+    "AI Anomalies",
+
     14,
+
     y
+
   )
 
   y += 10
@@ -213,9 +248,13 @@ function ReportCard({ report }) {
       doc.setFontSize(11)
 
       doc.text(
+
         `• ${flag}`,
+
         18,
+
         y
+
       )
 
       y += 8
@@ -227,43 +266,53 @@ function ReportCard({ report }) {
   else{
 
     doc.text(
+
       "No anomalies detected",
+
       18,
+
       y
+
     )
 
   }
 
 
-  // ---------------- INSIGHTS ----------------
+  // ---------- AI INSIGHTS ----------
 
-  y += 18
+  y += 20
 
-  doc.setFontSize(16)
+  doc.setFontSize(18)
 
   doc.text(
+
     "AI Insights",
+
     14,
+
     y
+
   )
 
   y += 10
 
-  const splitText = doc.splitTextToSize(
+
+  const text = doc.splitTextToSize(
 
     report.anomalyInsights ||
 
-    "No insights available.",
+    "No insights available",
 
     180
 
   )
 
+
   doc.setFontSize(11)
 
   doc.text(
 
-    splitText,
+    text,
 
     18,
 
@@ -272,7 +321,73 @@ function ReportCard({ report }) {
   )
 
 
-  // ---------------- SAVE ----------------
+  // ---------- DAILY CHART ----------
+
+  if(chartRef.current){
+
+    const canvas = await html2canvas(
+
+      chartRef.current
+
+    )
+
+    const img = canvas.toDataURL(
+
+      "image/png"
+
+    )
+
+    doc.addPage()
+
+    doc.setFontSize(18)
+
+    doc.text(
+
+      "Daily Volume Graph",
+
+      14,
+
+      20
+
+    )
+
+    doc.addImage(
+
+      img,
+
+      "PNG",
+
+      10,
+
+      30,
+
+      190,
+
+      100
+
+    )
+
+  }
+
+
+  // ---------- FOOTER ----------
+
+  const pageHeight = doc.internal.pageSize.height
+
+  doc.setFontSize(10)
+
+  doc.text(
+
+    "Generated by Gym AI System",
+
+    14,
+
+    pageHeight - 10
+
+  )
+
+
+  // ---------- SAVE ----------
 
   doc.save(
 
@@ -280,7 +395,7 @@ function ReportCard({ report }) {
 
   )
 
-}
+} 
 
   return (
     <motion.div
@@ -549,7 +664,7 @@ function ReportCard({ report }) {
               </div>
 
               {/* Daily volume chart — real data */}
-              <div>
+             <div ref={chartRef}>
                 <p className="text-xs font-semibold tracking-widest text-green mb-4">
                   DAILY VOLUME (SETS)
                 </p>
@@ -646,7 +761,7 @@ export default function CoachReports() {
       try {
         // 1. Fetch coach's athletes
         const { data: profiles } = await api.get(`/coach/${user.id}/athletes`)
-        console.log(profiles)
+        // console.log(profiles)
         setAthletes(profiles)
 
         const allReports = []
@@ -666,12 +781,14 @@ export default function CoachReports() {
               const { data: plans } = await api.get(
                 `/plan/athlete/${athleteId}`
               )
-              console.log(plans);
               const active = plans.find((p) => p.status === "active") || plans[0]
+              // console.log(active);
+
               if (!active) return
 
               // Fetch full plan (for mesocycle context)
               const { data: fullPlan } = await api.get(`/plan/${active._id}`)
+              // console.log(fullPlan)
 
               // Current week number
               const currentWeek = Math.min(
@@ -681,37 +798,73 @@ export default function CoachReports() {
                 ),
                 active.totalWeeks
               )
+              // console.log(currentWeek)
 
               // Fetch sessions for this athlete
               const { data: sessions } = await api.get(
                 `/workout/athlete/${athleteId}`
               )
-
+              // console.log(sessions);
               // Get this week's sessions
               const planStart = new Date(active.startDate)
               const weekSessions = sessions.filter((s) => {
-                const sessWeek = Math.ceil(
-                  (new Date(s.createdAt) - planStart) /
-                  (7 * 24 * 60 * 60 * 1000)
-                )
-                return sessWeek === currentWeek
-              })
 
+            // Prefer loggedAt, otherwise fallback to createdAt
+            const sessionDate = new Date(
+
+              s.loggedAt ||
+
+              s.createdAt
+
+            )
+
+            if (isNaN(sessionDate)) {
+
+              return false
+
+            }
+
+            const sessWeek = Math.min(
+
+              active.totalWeeks,
+
+              Math.max(
+
+                1,
+
+                Math.floor(
+
+                  (sessionDate - planStart) /
+
+                  (7 * 24 * 60 * 60 * 1000)
+
+                ) + 1
+
+              )
+
+            )
+
+            return sessWeek === currentWeek
+
+          })
+              console.log(weekSessions)
               const completed = weekSessions.filter(
                 (s) => s.status === "completed"
               ).length
+              console.log(completed);
               const total = weekSessions.length || 1
               const compliance = Math.round((completed / total) * 100)
-
+              console.log(compliance);
+              console.log(compliance);
               totalCompliance += compliance
               complianceCount++
 
               // Fetch weekly reports from DB
-              console.log(active._id);
+              // console.log(active._id);
               const { data: weekReports } = await api.get(
                 `/report/${active._id}`
               )
-
+              // console.log(weekReports);
               // Get anomaly sessions this week
               const anomalySessions = weekSessions.filter(
                 (s) => s.aiAnomalyReport?.detected
@@ -848,7 +1001,7 @@ export default function CoachReports() {
     console.log(athleteId)
     try {
       const { data: sessions } = await api.get(`/workout/athlete/${athleteId}`)
-      console.log(sessions)
+      // console.log(sessions)
       const { data: plans }    = await api.get(`/plan/athlete/${athleteId}`)
       // console.log(plans);
       const active = plans.find((p) => p.status === "active") || plans[0]
