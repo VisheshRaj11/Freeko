@@ -12,6 +12,8 @@ import {
 } from "recharts"
 import { useAuthStore } from "../../../store/authStore"
 import api from "../../lib/axios"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 
 const fadeUp = {
   hidden:  { opacity: 0, y: 20 },
@@ -68,6 +70,217 @@ function ReportCard({ report }) {
       : 0
     return { day, volume: totalSets, rpe: avgRpe }
   })
+
+  const downloadPDF = () => {
+
+  const doc = new jsPDF()
+
+  // ---------------- HEADER ----------------
+
+  doc.setFontSize(22)
+
+  doc.text(
+    "AI WEEKLY REPORT",
+    14,
+    20
+  )
+
+  doc.setFontSize(12)
+
+  doc.text(
+    `Athlete : ${report.athleteName}`,
+    14,
+    35
+  )
+
+  doc.text(
+    `Week : ${report.weekNumber}`,
+    14,
+    43
+  )
+
+  doc.text(
+    `Plan : ${report.planTitle}`,
+    14,
+    51
+  )
+
+  doc.text(
+    `Generated : ${
+      report.generatedAt
+        ? new Date(
+            report.generatedAt
+          ).toLocaleDateString()
+        : "-"
+    }`,
+    14,
+    59
+  )
+
+
+  // ---------------- SUMMARY ----------------
+
+  doc.setFontSize(16)
+
+  doc.text(
+    "Week Summary",
+    14,
+    75
+  )
+
+  let y = 85
+
+  report.summaryBullets?.forEach((bullet)=>{
+
+    doc.setFontSize(11)
+
+    doc.text(
+      `• ${bullet}`,
+      18,
+      y
+    )
+
+    y += 8
+
+  })
+
+
+  // ---------------- COMPLIANCE ----------------
+
+  y += 8
+
+  doc.setFontSize(16)
+
+  doc.text(
+    "Compliance",
+    14,
+    y
+  )
+
+  y += 10
+
+  doc.setFontSize(11)
+
+  doc.text(
+    `Completed Sessions : ${report.sessionsCompleted}`,
+    18,
+    y
+  )
+
+  y += 8
+
+  doc.text(
+    `Total Sessions : ${report.sessionsTotal}`,
+    18,
+    y
+  )
+
+  y += 8
+
+  doc.text(
+    `Compliance : ${
+      Math.round(
+        (
+          report.sessionsCompleted /
+          Math.max(report.sessionsTotal,1)
+        ) * 100
+      )
+    }%`,
+    18,
+    y
+  )
+
+
+  // ---------------- ANOMALIES ----------------
+
+  y += 18
+
+  doc.setFontSize(16)
+
+  doc.text(
+    "Anomalies",
+    14,
+    y
+  )
+
+  y += 10
+
+
+  if(report.anomalyFlags?.length){
+
+    report.anomalyFlags.forEach((flag)=>{
+
+      doc.setFontSize(11)
+
+      doc.text(
+        `• ${flag}`,
+        18,
+        y
+      )
+
+      y += 8
+
+    })
+
+  }
+
+  else{
+
+    doc.text(
+      "No anomalies detected",
+      18,
+      y
+    )
+
+  }
+
+
+  // ---------------- INSIGHTS ----------------
+
+  y += 18
+
+  doc.setFontSize(16)
+
+  doc.text(
+    "AI Insights",
+    14,
+    y
+  )
+
+  y += 10
+
+  const splitText = doc.splitTextToSize(
+
+    report.anomalyInsights ||
+
+    "No insights available.",
+
+    180
+
+  )
+
+  doc.setFontSize(11)
+
+  doc.text(
+
+    splitText,
+
+    18,
+
+    y
+
+  )
+
+
+  // ---------------- SAVE ----------------
+
+  doc.save(
+
+    `${report.athleteName}_week_${report.weekNumber}.pdf`
+
+  )
+
+}
 
   return (
     <motion.div
@@ -219,6 +432,7 @@ function ReportCard({ report }) {
               e.stopPropagation()
 
               // PDF download logic here
+               downloadPDF();
 
             }}
 
