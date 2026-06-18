@@ -847,15 +847,15 @@ export default function CoachReports() {
             return sessWeek === currentWeek
 
           })
-              console.log(weekSessions)
+              // console.log(weekSessions)
               const completed = weekSessions.filter(
                 (s) => s.status === "completed"
               ).length
-              console.log(completed);
+              // console.log(completed);
               const total = weekSessions.length || 1
               const compliance = Math.round((completed / total) * 100)
-              console.log(compliance);
-              console.log(compliance);
+              // console.log(compliance);
+              // console.log(compliance);
               totalCompliance += compliance
               complianceCount++
 
@@ -998,7 +998,7 @@ export default function CoachReports() {
   // ── Load lift trend for selected athlete ───────────────────
   const loadTrend = async (athleteId) => {
     setTrendLoading(true)
-    console.log(athleteId)
+    // console.log(athleteId)
     try {
       const { data: sessions } = await api.get(`/workout/athlete/${athleteId}`)
       // console.log(sessions)
@@ -1115,7 +1115,7 @@ export default function CoachReports() {
 
   const handleAthleteSelect = async (athlete) => {
     setSelectedAthlete(athlete)
-    console.log(athlete);
+    // console.log(athlete);
     await loadTrend(athlete._id)
   }
 

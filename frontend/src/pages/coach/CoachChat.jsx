@@ -300,13 +300,13 @@ export default function CoachChat() {
 
    socket.on("online_users", (onlineUserIds) => {
 
-      console.log("ONLINE IDS:", onlineUserIds)
+      // console.log("ONLINE IDS:", onlineUserIds)
 
       setAthletes((prev) =>
           prev.map((a) => {
             const isOnline = onlineUserIds.includes(String(a.id))
 
-            console.log(a.name, a.id, isOnline)
+            // console.log(a.name, a.id, isOnline)
 
             return {
               ...a,

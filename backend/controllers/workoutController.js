@@ -8,10 +8,10 @@ const AI = process.env.AI_SERVICE_URL;
 
 export const logWorkout = async (req, res) => {
   const { exercises } = req.body
-  console.log(exercises)
+  // console.log(exercises)
 
   try {
-    console.log(req.params);
+    // console.log(req.params);
     // ── 1. Find and update session ──────────────────────────
     const session = await WorkoutSession.findById(req.params.sessionId)
     if (!session) return res.status(404).json({ message: "Session not found" })
@@ -174,7 +174,7 @@ export const getAthleteSessions = async (req, res) => {
   try {
     const sessions = await WorkoutSession.find({ athleteId: req.params.athleteId })
       .sort("-loggedAt").limit(50);
-    console.log(sessions);
+    // console.log(sessions);
     res.json(sessions);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -230,6 +230,7 @@ export const completeSession = async(req, res) => {
 
 export const skipSession = async (req, res) => {
   try {
+    // console.log(sessionId)
     const s = await WorkoutSession.findByIdAndUpdate(
       req.params.sessionId, { status: "skipped" }, { new: true }
     );

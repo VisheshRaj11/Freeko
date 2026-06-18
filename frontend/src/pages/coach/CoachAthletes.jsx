@@ -218,7 +218,7 @@ export default function CoachAthletes() {
     try {
       const res = await api.get("/athlete/unassigned");
       setUnassigned(res.data.athletes);
-      console.log(res.data.athletes);
+      // console.log(res.data.athletes);
     } catch { setUnassigned([]) }
   }
 
@@ -233,7 +233,7 @@ export default function CoachAthletes() {
 
   const handleAssign = async (athleteId) => {
     // console.log(user.id);
-    console.log(athleteId._id);
+    // console.log(athleteId._id);
     setAssigning(athleteId)
     try {
       await api.patch(`/athlete/${athleteId._id}`, {

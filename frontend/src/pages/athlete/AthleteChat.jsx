@@ -362,7 +362,7 @@ export default function AthleteChat() {
   const bottomRef                = useRef(null)
   const socketRef                = useRef(null)
   const typingTimer              = useRef(null)
-  console.log(coach);
+  // console.log(coach);
 
   useEffect(() => {
     const athleteInfo = async() => {
@@ -399,7 +399,7 @@ export default function AthleteChat() {
         // console.log(profile)
         if (profile.assignedCoachId) {
           const {data: coachInfo} = await api.get(`/coach/${profile?.assignedCoachId}`)
-          console.log(coachInfo);
+          // console.log(coachInfo);
           setCoach(coachInfo);
         }
 
@@ -535,7 +535,7 @@ export default function AthleteChat() {
 
   // ── Plan info for header ───────────────────────────────────
   const masterPlan  = plan?.plan
-  console.log(masterPlan)
+  // console.log(masterPlan)
 
   const mesocycles  = plan?.mesocycles || []
   const WEEK_MS = 7 * 24 * 60 * 60 * 1000

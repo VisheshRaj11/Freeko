@@ -228,9 +228,9 @@ export default function AthleteProgress() {
 
         // 2. Fetch active plan for context
         const { data: plans } = await api.get(`/plan/athlete/${athleteData._id}`)
-        console.log(plans);
+        // console.log(plans);
         const active = plans.find((p) => (p.status === "active" && p.coachId !== null)) || plans[0]
-        console.log(active)
+        // console.log(active)
         if (active) setPlanInfo(active)
       } catch (err) {
         console.error(err)

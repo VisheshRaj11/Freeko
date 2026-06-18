@@ -29,7 +29,7 @@ function WeekStrip({ sessions }) {
   const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
   const today = new Date().getDay() // 0=Sun,1=Mon...
   const todayIdx = today === 0 ? 6 : today - 1
-  console.log(todayIdx);
+  // console.log(todayIdx);
 
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -151,10 +151,10 @@ export default function AthleteDashboard() {
   const [sessions, setSessions] = useState([])
   const [anomaly,  setAnomaly]  = useState(null)
   const [todaySession, setTodaySession] = useState(null);
-  console.log(todaySession)
+  // console.log(todaySession)
   // const {setCompletion, toggleSet, isExerciseCompleted} = useWorkoutStore();
   const [showSkipScreen, setShowSkipScreen] = useState(false)
-  console.log(todaySession);
+  // console.log(todaySession);
 
   const [stats,    setStats]    = useState({
     streak: 0, totalSessions: 0, compliance: 0
@@ -185,7 +185,7 @@ export default function AthleteDashboard() {
           `/workout/athlete/${prof._id}`
         )
   
-        console.log(recentSessions);
+        // console.log(recentSessions);
   
         setSessions(recentSessions)
   
@@ -462,21 +462,64 @@ export default function AthleteDashboard() {
 
   // console.log(profile)
   // Progress %
-  const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+  // ── Progress based on workout completion ──
 
-  const calculateProgress = (plan) => {
-    if (!plan?.startDate || !plan?.totalWeeks) return 0
+const calculateProgress = (plan, sessions) => {
 
-    const start = new Date(plan.startDate).getTime()
-    const end = start + plan.totalWeeks * WEEK_MS
+  if (!plan?.totalWeeks) {
 
-    return Math.min(
-      Math.round(((Date.now() - start) / (end - start)) * 100),
-      100
-    )
+    return 0
+
   }
 
-  const progress = calculateProgress(masterPlan)
+  // Change this if your athletes don't train daily
+  const DAYS_PER_WEEK = 7
+
+  const expectedSessions =
+
+    plan.totalWeeks * DAYS_PER_WEEK
+
+  if (expectedSessions === 0) {
+
+    return 0
+
+  }
+
+  const completedSessions =
+
+    sessions.filter(
+
+      (s) => s.status === "completed"
+
+    ).length
+
+  return Math.min(
+
+    100,
+
+    Math.round(
+
+      (
+
+        completedSessions /
+
+        expectedSessions
+
+      ) * 100
+
+    )
+
+  )
+
+}
+
+const progress = calculateProgress(
+
+  masterPlan,
+
+  sessions
+
+)
 
   // Current mesocycle
   const currentMeso = mesocycles.find(
@@ -752,123 +795,126 @@ export default function AthleteDashboard() {
           )}
 
           {/* Today's session */}
-          <motion.div variants={fadeUp}
-                      className="glass-card rounded-2xl p-5 border"
-                      style={{ borderColor: "var(--glass-border)" }}>
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <p className="text-xs text-green font-semibold tracking-widest mb-1">
-                  TODAY'S SESSION
-                </p>
-                <h3 className="font-display font-700 text-xl uppercase"
-                    style={{ color: "var(--text)" }}>
-                  {todaySession
-                    ? todaySession.dayLabel
-                    : weekSessions[0]?.dayLabel || "No session today"
-                  }
-                </h3>
-               
-              </div>
-              {todaySession && (
-                <div className="text-right">
-                  <p className="font-display font-900 text-2xl text-green">
-                    {todaySession.exercises?.filter((e) => e.completed).length}/
-                    {todaySession.exercises?.length}
-                  </p>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    exercises done
-                  </p>
-                </div>
-              )}
-            </div>
+        
+          {/* Today's session */}
+<motion.div variants={fadeUp}
+            className="glass-card rounded-2xl p-5 border"
+            style={{ borderColor: "var(--glass-border)" }}>
+  <div className="flex items-center justify-between mb-5">
+    <div>
+      <p className="text-xs text-green font-semibold tracking-widest mb-1">
+        TODAY'S SESSION
+      </p>
+      <h3 className="font-display font-700 text-xl uppercase"
+          style={{ color: "var(--text)" }}>
+        {todaySession
+          ? todaySession.dayLabel
+          : "No session today"   
+        }
+      </h3>
+    </div>
+    {todaySession && (
+      <div className="text-right">
+        <p className="font-display font-900 text-2xl text-green">
+          {todaySession.exercises?.filter((e) => e.completed).length}/
+          {todaySession.exercises?.length}
+        </p>
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+          exercises done
+        </p>
+      </div>
+    )}
+  </div>
 
-            {/* Progress bar */}
-            {todaySession && (
-              <div className="h-1.5 rounded-full overflow-hidden mb-5"
-              style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{
-                    width: `${Math.round(
-                      ((todaySession.exercises?.filter((e) => e.completed).length || 0) /
-                        (todaySession.exercises?.length || 1)) * 100
-                      )}%`
-                    }}
-                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
-                    className="h-full rounded-full bg-green"
-                    style={{ boxShadow: "0 0 8px rgba(57,255,20,0.5)" }}
-                    />
-              </div>
-            )}
-           
+  {/* Progress bar — only when there's a real today session */}
+  {todaySession && (
+    <div className="h-1.5 rounded-full overflow-hidden mb-5"
+         style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{
+          width: `${Math.round(
+            ((todaySession.exercises?.filter((e) => e.completed).length || 0) /
+              (todaySession.exercises?.length || 1)) * 100
+            )}%`
+          }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+          className="h-full rounded-full bg-green"
+          style={{ boxShadow: "0 0 8px rgba(57,255,20,0.5)" }}
+          />
+    </div>
+  )}
 
-            {/* Exercises list */}
-            <div className="flex flex-col gap-2">
-              {(todaySession?.exercises || weekSessions[0]?.exercises || [])
-                .slice(0, 5)
-                .map((ex, i) => (
-                  <ExRow key={i} ex={ex} index={i} />
-                ))}
-            </div>
+  {/* Exercises list — only when there's a real today session */}
+  {todaySession && (
+    <div className="flex flex-col gap-2">
+      {todaySession.exercises
+        ?.slice(0, 5)
+        .map((ex, i) => (
+          <ExRow key={i} ex={ex} index={i} />
+        ))}
+    </div>
+  )}
 
-            {/* Start session button */}
-            {todaySession && (
-              <div className="flex flex-col md:flex-row md:gap-2">
-                <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                disabled={todaySession.status === 'completed' || todaySession.status === 'skipped' }
-                onClick={() => navigate(`/athlete/workout/${todaySession._id}`)}
-                className="mt-5 w-full py-3.5 rounded-xl btn-green flex items-center
-                           justify-center gap-2 text-sm font-bold"
-              >
-                <Play size={15} fill="currentColor" />
-                {todaySession.status === "completed"
-                  ? "Completed"
-                  : todaySession.status === "skipped"
-                    ? "Skipped"
-                    : todaySession.status === "in_progress"
-                      ? "Continue Session"
-                      : "Start Session"
-                }
-              </motion.button>
-              {todaySession.status !== 'completed' && todaySession.status !== 'skipped' &&
-              (<motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleSkip(todaySession._id)}
-                className="mt-5 w-full py-3.5 rounded-xl btn-green flex items-center
-                           justify-center gap-2 text-sm font-bold"
-              >
-                <SkipForward size={15} fill="currentColor" />
-                Skip
-              </motion.button>)}
-              </div>
-            )}
+  {/* Start / Skip buttons — only when there's a real today session */}
+  {todaySession && (
+    <div className="flex flex-col md:flex-row md:gap-2">
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        disabled={todaySession.status === 'completed' || todaySession.status === 'skipped'}
+        onClick={() => navigate(`/athlete/workout/${todaySession._id}`)}
+        className="mt-5 w-full py-3.5 rounded-xl btn-green flex items-center
+                   justify-center gap-2 text-sm font-bold"
+      >
+        <Play size={15} fill="currentColor" />
+        {todaySession.status === "completed"
+          ? "Completed"
+          : todaySession.status === "skipped"
+            ? "Skipped"
+            : todaySession.status === "in_progress"
+              ? "Continue Session"
+              : "Start Session"
+        }
+      </motion.button>
 
-            {/* // ✅ New — shows different message depending on whether plan exists */}
-            {!todaySession && (
-              <div className="flex flex-col items-center gap-3 py-6 text-center">
-                <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10
-                                flex items-center justify-center">
-                  <BedDouble size={20} style={{ color: "var(--text-dim)" }} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold mb-1"
-                    style={{ color: "var(--text)" }}>
-                    {masterPlan ? <> Rest Day</> : "No active plan yet"}
-                  </p>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    {masterPlan
-                      ? "No session scheduled for today. Recover well and come back stronger."
-                      : "Your coach will generate your personalized AI plan soon."
-                    }
-                  </p>
-                </div>
-              </div>
-            )}
-          </motion.div>
+      {todaySession.status !== 'completed' && todaySession.status !== 'skipped' && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => handleSkip(todaySession._id)}
+          className="mt-5 w-full py-3.5 rounded-xl btn-green flex items-center
+                     justify-center gap-2 text-sm font-bold"
+        >
+          <SkipForward size={15} fill="currentColor" />
+          Skip
+        </motion.button>
+      )}
+    </div>
+  )}
 
+  {/* Rest day state — only renders when there's genuinely no session today */}
+  {!todaySession && (
+    <div className="flex flex-col items-center gap-3 py-6 text-center">
+      <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10
+                      flex items-center justify-center">
+        <BedDouble size={20} style={{ color: "var(--text-dim)" }} />
+      </div>
+      <div>
+        <p className="text-sm font-semibold mb-1"
+           style={{ color: "var(--text)" }}>
+          {masterPlan ? "Rest Day" : "No active plan yet"}
+        </p>
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+          {masterPlan
+            ? "No session scheduled for today. Recover well and come back stronger."
+            : "Your coach will generate your personalized AI plan soon."
+          }
+        </p>
+      </div>
+    </div>
+  )}
+</motion.div>
           {/* Recent sessions — real data */}
           <motion.div variants={fadeUp}
                       className="glass-card rounded-2xl p-5 border"

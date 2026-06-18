@@ -25,7 +25,7 @@ export const registerSocketHandlers = (io) => {
     // ── Join a room tied to a MasterPlan ──────────────────────
     socket.on("join_plan_room", (planId) => {
       socket.join(`plan_${planId}`);
-      console.log(`${socket.user.name} joined room → plan_${planId}`);
+      // console.log(`${socket.user.name} joined room → plan_${planId}`);
     });
 
     // ── Send a message ─────────────────────────────────────────
@@ -114,11 +114,11 @@ export const registerSocketHandlers = (io) => {
     // ── Leave room + disconnect ────────────────────────────────
     socket.on("leave_plan_room", (planId) => {
       socket.leave(`plan_${planId}`);
-      console.log(`${socket.user.name} left room → plan_${planId}`);
+      // console.log(`${socket.user.name} left room → plan_${planId}`);
     });
 
     socket.on("disconnect", () => {
-      console.log(`🔌 Disconnected: ${socket.user.name}`);
+      // console.log(`🔌 Disconnected: ${socket.user.name}`);
     });
   });
 };

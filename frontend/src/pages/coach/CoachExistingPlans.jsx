@@ -198,7 +198,7 @@ const CoachExistingPlans = () => {
           `/plan/get-microPlans/${user.id}/${athleteId}`
         );
 
-        console.log(res.data);
+        // console.log(res.data);
 
         setPlans(res.data.plan);
 

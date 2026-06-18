@@ -309,7 +309,7 @@ export default function CoachDashboard() {
               )
               // console.log(plans)
               const active = plans.find((p) => p.status === "active") || plans[0]
-              console.log(active)
+              // console.log(active)
 
               // Calculate rough progress
               // Calculate progress based on completed workouts
@@ -391,7 +391,7 @@ export default function CoachDashboard() {
           try {
             // console.log(a)
             const { data: sessions } = await api.get(`/workout/athlete/${a.id}`)
-            console.log(sessions)
+            // console.log(sessions)
             sessions.forEach((s) => {
               if (s.status !== "completed") return
               const date    = new Date(s.loggedAt)

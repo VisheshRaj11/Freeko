@@ -21,10 +21,10 @@ router.get('/unassigned',async(req, res) => {
 
 router.get('/:userId', async(req, res) => {
     // console.log(req.params.userId);
-    const p = await AthleteProfile.findOne({_id: req.params.userId})
+    const p = await AthleteProfile.findOne({userId: req.params.userId})
     .populate("userId", "name email");
 
-    console.log(p);
+    // console.log(p);
     if(!p) return res.status(404).json({message: "Not found"});
     res.json(p);
 })

@@ -508,7 +508,7 @@ const CoachFullPlan = () => {
       try {
         const res = await api.get(`/plan/${planId}`);
 
-        console.log(res.data);
+        // console.log(res.data);
 
         setFullPlan(res.data);
 

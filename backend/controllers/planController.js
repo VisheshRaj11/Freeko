@@ -23,13 +23,13 @@ const sanitizeIntensity = (level) => {
 
 export const generatePlan = async (req, res) => {
   const { athleteId, title, startDate, totalWeeks } = req.body;
-  console.log(req.body);
+  // console.log(req.body);
   try {
     const profile = await AthleteProfile.findOne({ _id: athleteId });
     // console.log(profile);
     if (!profile) return res.status(404).json({ message: "Athlete not found" });
     // console.log("Ai responed")
-    console.log(AI);
+    // console.log(AI);
     const { data } = await axios.post(`${AI}/generate-plan`, {
       athlete: {
         fitnessLevel:    profile.fitnessLevel,
@@ -135,7 +135,7 @@ export const generatePlan = async (req, res) => {
 };
 
 export const getMicroPlans = async(req, res) => {
-  console.log(req.params);
+  // console.log(req.params);
   const {coachId, athleteId} = req.params;
   // coachId = new mongoose.Types
   if(!coachId) return res.json("coach and athlete are mandatory");
@@ -155,7 +155,7 @@ export const getPlan = async (req, res) => {
       .populate("coachId", "name email")
       .populate("athleteId", "name email");
 
-    console.log(plan);
+    // console.log(plan);
 
     if (!plan) return res.status(404).json({ message: "Not found" });
 
@@ -187,7 +187,7 @@ export const getAthletePlans = async (req, res) => {
     // console.log(req.params)
     const plans = await MasterPlan.find({ athleteId: req.params.athleteId })
       .populate("coachId", "name email").sort("-createdAt");
-      console.log(plans)
+      // console.log(plans)
     res.json(plans);
   } catch (err) {
     res.status(500).json({ message: err.message });

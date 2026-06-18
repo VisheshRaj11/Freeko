@@ -4,7 +4,7 @@ import { generateWeeklyReport } from "../controllers/reportController.js";
 export const runWeeklyReportJob = async () => {
   try {
     const activePlans = await MasterPlan.find({ status: "active" });
-    console.log(`📋 Found ${activePlans.length} active plans — generating reports...`);
+    // console.log(`📋 Found ${activePlans.length} active plans — generating reports...`);
 
     for (const plan of activePlans) {
       const msPerWeek  = 7 * 24 * 60 * 60 * 1000;
@@ -13,7 +13,7 @@ export const runWeeklyReportJob = async () => {
 
       if (weekNumber > 0 && weekNumber <= plan.totalWeeks) {
         await generateWeeklyReport(plan._id, weekNumber);
-        console.log(`✅ Report done → Plan: ${plan.title} | Week: ${weekNumber}`);
+        // console.log(`✅ Report done → Plan: ${plan.title} | Week: ${weekNumber}`);
       }
     }
 
