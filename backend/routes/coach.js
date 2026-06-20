@@ -39,6 +39,7 @@ router.get("/:coachId/athletes", requireRole("coach"), async (req, res) => {
   //   .populate("userId", "name email avatarUrl");
 });
 
+
 export const invalidateCoachAthletes = async (coachId) => {
   await invalidate(`coach:${coachId}:athletes`)
 }

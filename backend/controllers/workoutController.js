@@ -3,7 +3,7 @@ import WorkoutSession from "../models/WorkoutSession.js";
 import Microcycle    from "../models/Microcycle.js";
 import Mesocycle     from "../models/Mesocycle.js";
 import MasterPlan    from "../models/MasterPlan.js";
-import { invalidate, invalidatePattern } from "../utils/cache.js";
+import { cached, invalidate, invalidatePattern, TTL } from "../utils/cache.js";
 
 const AI = process.env.AI_SERVICE_URL;
 
@@ -178,11 +178,14 @@ export const getAthleteSessions = async (req, res) => {
   // console.log(req.params.athleteId);
   try {
      const athleteId = req.params.athleteId
+    //  console.log(athleteId);
     const cacheKey = `athlete:${athleteId}:sessions`
 
     const sessions = await cached(cacheKey, TTL.SHORT, async () => {
       return WorkoutSession.find({ athleteId }).sort("-loggedAt").limit(50).lean()
     })
+
+    // console.log(sessions);
 
     res.json(sessions)
   } catch (err) {

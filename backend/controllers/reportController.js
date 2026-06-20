@@ -5,6 +5,7 @@ import WeeklyReport  from "../models/WeeklyReport.js";
 import MasterPlan    from "../models/MasterPlan.js";
 import Mesocycle     from "../models/Mesocycle.js";
 import Microcycle    from "../models/Microcycle.js";
+import { cached, TTL } from "../utils/cache.js";
 
 const AI = process.env.AI_SERVICE_URL;
 
