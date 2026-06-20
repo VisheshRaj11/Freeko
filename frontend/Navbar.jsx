@@ -6,13 +6,13 @@ import {
   LayoutDashboard, ChevronRight,
   Brain, Dumbbell, BarChart3, MessageSquare
 } from "lucide-react"
-import { useAuthStore } from "../../store/authStore"
+import { useAuthStore } from "./store/authStore"
 
 const NAV_LINKS = [
   { label: "Home",     href: "/"          },
   { label: "Features", href: "#features"  },
   { label: "How it Works", href: "#how"   },
-  { label: "Exercise", href: "#exercise"  },
+  // { label: "Exercise", href: "#exercise"  },
 ]
 
 const DRAWER_FEATURES = [
@@ -153,76 +153,362 @@ export default function Navbar() {
               style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
             />
 
-            <motion.aside
-              key="drawer"
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed top-0 left-0 bottom-0 z-50 w-72 md:hidden
-                         flex flex-col overflow-hidden"
+           <motion.aside
+  key="drawer"
+  initial={{ x: "-100%" }}
+  animate={{ x: 0 }}
+  exit={{ x: "-100%" }}
+  transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+  className="fixed top-0 left-0 bottom-0 z-50 w-72 md:hidden
+             flex flex-col overflow-hidden glass-nav"
+>
+
+  {/* Header */}
+
+  <div className="flex items-center justify-between px-4 py-5">
+
+    <div className="flex items-center gap-2">
+
+      <div
+        className="w-8 h-8 rounded-lg bg-green flex
+                   items-center justify-center"
+      >
+
+        <img
+          src="./logo.png"
+          className="rounded"
+          alt=""
+        />
+
+      </div>
+
+      <span
+        className="font-display font-800 text-2xl uppercase"
+        style={{
+          color:"var(--text)"
+        }}
+      >
+
+        Free
+
+        <span className="text-green">
+
+          ko
+
+        </span>
+
+      </span>
+
+    </div>
+
+    <button
+
+      onClick={() => setDrawerOpen(false)}
+
+      className="w-10 h-10 rounded-lg
+
+                 flex items-center
+
+                 justify-center
+
+                 hover:bg-white/5"
+
+    >
+
+      <X size={20} />
+
+    </button>
+
+  </div>
+
+
+  <div
+
+    className="flex-1 overflow-y-auto
+
+               px-4 pb-6
+
+               flex flex-col"
+
+  >
+
+    {/* Landing links */}
+
+    {isLanding && (
+
+      <div className="mb-5">
+
+        {NAV_LINKS.map(
+
+          (link, i) => (
+
+            <motion.div
+
+              key={link.label}
+
+              initial={{
+
+                opacity:0,
+
+                x:-16
+
+              }}
+
+              animate={{
+
+                opacity:1,
+
+                x:0
+
+              }}
+
+              transition={{
+
+                delay:0.05*i
+
+              }}
+
             >
-              <div className="flex-1 px-4 py-5 overflow-y-auto flex flex-col gap-2">
 
-                {/* Nav links */}
-                {isLanding && (
-                  <div className="mb-2">
-                    {NAV_LINKS.map((link, i) => (
-                      <motion.div
-                        key={link.label}
-                        initial={{ opacity: 0, x: -16 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.05 * i }}
-                      >
-                        <NavLink
-                          to={link.href}
-                          onClick={() => setDrawerOpen(false)}
-                          className="flex items-center justify-between px-3 py-3
-                                     rounded-lg text-sm font-medium transition-all
-                                     hover:bg-white/5 hover:text-green group"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          {link.label}
-                          <ChevronRight size={14}
-                            className="opacity-0 group-hover:opacity-100
-                                       transition-opacity text-green" />
-                        </NavLink>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
+              <a
 
-                {/* Features */}
-                <div className="mb-2">
-                  {DRAWER_FEATURES.map(({ icon: Icon, label, href }, i) => (
-                    <motion.div
-                      key={label}
-                      initial={{ opacity: 0, x: -16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.05 * i + 0.1 }}
-                    >
-                      <NavLink
-                        to={href}
-                        onClick={() => setDrawerOpen(false)}
-                        className="flex items-center gap-3 px-3 py-3 rounded-lg
-                                   text-sm font-medium transition-all hover:bg-white/5
-                                   group"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        <div className="w-7 h-7 rounded-md bg-green-muted flex
-                                        items-center justify-center flex-shrink-0">
-                          <Icon size={14} className="text-green" />
-                        </div>
-                        <span className="group-hover:text-green transition-colors">
-                          {label}
-                        </span>
-                      </NavLink>
-                    </motion.div>
-                  ))}
-                </div>
+                href={link.href}
 
-              </div>
-            </motion.aside>
+                onClick={() =>
+
+                  setDrawerOpen(false)
+
+                }
+
+                className="flex items-center
+
+                           justify-between
+
+                           px-3 py-3
+
+                           rounded-lg
+
+                           text-sm
+
+                           font-medium
+
+                           hover:bg-white/5
+
+                           hover:text-green
+
+                           group"
+
+                style={{
+
+                  color:"var(--text-muted)"
+
+                }}
+
+              >
+
+                {link.label}
+
+                <ChevronRight
+
+                  size={14}
+
+                  className="opacity-0
+
+                            group-hover:opacity-100
+
+                            transition-opacity
+
+                            text-green"
+
+                />
+
+              </a>
+
+            </motion.div>
+
+          )
+
+        )}
+
+      </div>
+
+    )}
+
+    {/* Account section */}
+
+    <div
+
+      className="mt-auto
+
+                 pt-5
+
+                 border-t"
+
+      style={{
+
+        borderColor:
+
+        "rgba(255,255,255,0.08)"
+
+      }}
+
+    >
+
+      {token ? (
+
+        <div
+
+          className="flex flex-col gap-3"
+
+        >
+
+          <Link
+
+            to={
+
+              user?.role === "coach"
+
+              ? "/coach"
+
+              : "/athlete"
+
+            }
+
+            onClick={() =>
+
+              setDrawerOpen(false)
+
+            }
+
+            className="flex items-center
+
+                       gap-3
+
+                       px-4 py-3
+
+                       rounded-xl
+
+                       btn-glass"
+
+          >
+
+            <LayoutDashboard
+
+              size={18}
+
+            />
+
+            Dashboard
+
+          </Link>
+
+
+          <button
+
+            onClick={handleLogout}
+
+            className="flex items-center
+
+                       gap-3
+
+                       px-4 py-3
+
+                       rounded-xl
+
+                       font-semibold
+
+                       border
+
+                       transition-all
+
+                       hover:bg-red-500/10"
+
+            style={{
+
+              color:"#ef4444",
+
+              borderColor:
+
+              "rgba(239,68,68,0.25)"
+
+            }}
+
+          >
+
+            <LogOut size={18} />
+
+            Logout
+
+          </button>
+
+        </div>
+
+      ) : (
+
+        <div
+
+          className="flex flex-col gap-3"
+
+        >
+
+          <Link
+
+            to="/login"
+
+            onClick={() =>
+
+              setDrawerOpen(false)
+
+            }
+
+            className="w-full
+
+                       px-4 py-3
+
+                       text-center
+
+                       btn-glass"
+
+          >
+
+            Sign In
+
+          </Link>
+
+
+          <Link
+
+            to="/register"
+
+            onClick={() =>
+
+              setDrawerOpen(false)
+
+            }
+
+            className="w-full
+
+                       px-4 py-3
+
+                       text-center
+
+                       btn-green"
+
+          >
+
+            Get Started →
+
+          </Link>
+
+        </div>
+
+      )}
+
+    </div>
+
+  </div>
+
+</motion.aside>
           </>
         )}
       </AnimatePresence>

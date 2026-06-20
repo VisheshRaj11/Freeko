@@ -7,7 +7,7 @@ import {
   ChevronLeft, ChevronRight, Dumbbell
 } from "lucide-react"
 import { useAuthStore } from "../../store/authStore"
-import Navbar from "../components/Navbar"
+import Navbar from "../../Navbar"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard",  to: "/coach" },

@@ -41,7 +41,7 @@ export const generateWeeklyReport = async (req, res) => {
       workout_sessions: sessions,
     });
 
-    return await WeeklyReport.create({
+    const report = await WeeklyReport.create({
       masterPlanId:    planId,
       athleteId:       plan.athleteId,
       weekNumber,
@@ -49,6 +49,12 @@ export const generateWeeklyReport = async (req, res) => {
       anomalyInsights: data.anomaly_insights,
       pdfUrl:          data.pdf_url || "",
     });
+
+     await invalidate(`report:${planId}:all`)
+
+    // console.log(`✅ Weekly report generated for plan ${planId}, week ${weekNumber}`)
+    return report
+
   } catch (err) {
     console.error("Report error:", err.message);
   }
@@ -56,8 +62,14 @@ export const generateWeeklyReport = async (req, res) => {
 
 export const getReports = async (req, res) => {
   try {
-    const reports = await WeeklyReport.find({ masterPlanId: req.params.planId }).sort("weekNumber");
-    res.json(reports);
+   const planId = req.params.planId
+    const cacheKey = `report:${planId}:all`
+
+    const reports = await cached(cacheKey, TTL.LONG, async () => {
+      return WeeklyReport.find({ masterPlanId: planId }).sort("weekNumber").lean()
+    })
+
+    return res.json(reports)
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -65,10 +77,16 @@ export const getReports = async (req, res) => {
 
 export const getWeekReport = async (req, res) => {
   try {
-    const report = await WeeklyReport.findOne({
-      masterPlanId: req.params.planId,
-      weekNumber:   Number(req.params.weekNumber),
-    });
+    const { planId, weekNumber } = req.params
+    const cacheKey = `report:${planId}:week:${weekNumber}`
+
+    const report = await cached(cacheKey, TTL.LONG, async () => {
+      return WeeklyReport.findOne({
+        masterPlanId: planId,
+        weekNumber:   Number(weekNumber),
+      }).lean()
+    })
+
     if (!report) return res.status(404).json({ message: "Not found" });
     res.json(report);
   } catch (err) {

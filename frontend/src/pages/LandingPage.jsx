@@ -8,7 +8,7 @@ import {
   Dumbbell, MessageSquare, BarChart3,
   Shield, Target, Cpu
 } from "lucide-react"
-import Navbar from "../components/Navbar"
+import Navbar from "../../Navbar"
 import { useAuthStore } from "../../store/authStore"
 
 const fadeUp = {

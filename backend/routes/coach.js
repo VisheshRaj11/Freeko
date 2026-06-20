@@ -2,6 +2,7 @@ import { Router } from "express";
 import { protect, requireRole } from "../middleware/auth.js";
 import CoachProfile from "../models/CoachProfile.js";
 import AthleteProfile from "../models/AthleteProfile.js";
+import { cached, invalidate, TTL } from "../utils/cache.js";
 
 const router = Router();
 router.use(protect);
@@ -21,9 +22,25 @@ router.patch("/:userId", requireRole("coach"), async (req, res) => {
 });
 
 router.get("/:coachId/athletes", requireRole("coach"), async (req, res) => {
-  const athletes = await AthleteProfile.find({ assignedCoachId: req.params.coachId })
-    .populate("userId", "name email avatarUrl");
-  res.json(athletes);
+  try {
+       const coachId = req.params.coachId
+       const cacheKey = `coach:${coachId}:athletes`
+        console.log(cacheKey)
+       const athletes = await cached(cacheKey, TTL.SHORT, async() => {
+          return await AthleteProfile.find({ assignedCoachId: req.params.coachId })
+                .populate("userId", "name email avatarUrl");
+       })
+
+       res.json(athletes);
+  } catch (error) {
+      res.status(500).json({ message: err.message })
+  }
+  // const athletes = await AthleteProfile.find({ assignedCoachId: req.params.coachId })
+  //   .populate("userId", "name email avatarUrl");
 });
+
+export const invalidateCoachAthletes = async (coachId) => {
+  await invalidate(`coach:${coachId}:athletes`)
+}
 
 export default router;

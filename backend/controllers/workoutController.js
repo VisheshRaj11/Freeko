@@ -3,6 +3,7 @@ import WorkoutSession from "../models/WorkoutSession.js";
 import Microcycle    from "../models/Microcycle.js";
 import Mesocycle     from "../models/Mesocycle.js";
 import MasterPlan    from "../models/MasterPlan.js";
+import { invalidate, invalidatePattern } from "../utils/cache.js";
 
 const AI = process.env.AI_SERVICE_URL;
 
@@ -106,6 +107,10 @@ export const logWorkout = async (req, res) => {
       }
     })
 
+     await invalidatePattern(`athlete:${session.athleteId}:sessions*`)
+  await invalidate(`plan:${micro.mesocycleId}:full`)  // if you cache by mesocycle too
+  await invalidatePattern(`coach:*:reports`)    
+
     // ── 6. Call FastAPI anomaly detection ───────────────────
     const { data } = await axios.post(`${AI}/detect-anomaly`, {
       current_session: {
@@ -172,10 +177,14 @@ export const getSession = async (req, res) => {
 export const getAthleteSessions = async (req, res) => {
   // console.log(req.params.athleteId);
   try {
-    const sessions = await WorkoutSession.find({ athleteId: req.params.athleteId })
-      .sort("-loggedAt").limit(50);
-    // console.log(sessions);
-    res.json(sessions);
+     const athleteId = req.params.athleteId
+    const cacheKey = `athlete:${athleteId}:sessions`
+
+    const sessions = await cached(cacheKey, TTL.SHORT, async () => {
+      return WorkoutSession.find({ athleteId }).sort("-loggedAt").limit(50).lean()
+    })
+
+    res.json(sessions)
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -222,6 +231,7 @@ export const completeSession = async(req, res) => {
   try {
     const s = await WorkoutSession.findByIdAndUpdate(
       req.params.sessionId, {status: 'completed', loggedAt: new Date()}, {new: true});
+      await invalidatePattern(`athlete:${s.athleteId}:sessions*`)
     res.json(s);
   } catch (err) {
       res.status(500).json({ message: err.message });
@@ -234,6 +244,7 @@ export const skipSession = async (req, res) => {
     const s = await WorkoutSession.findByIdAndUpdate(
       req.params.sessionId, { status: "skipped" }, { new: true }
     );
+    await invalidatePattern(`athlete:${s.athleteId}:sessions*`)
     res.json(s);
   } catch (err) {
     res.status(500).json({ message: err.message });
