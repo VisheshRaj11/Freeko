@@ -1,8 +1,9 @@
 import axios from "axios";
-import WorkoutSession from "../models/WorkoutSession.js";
-import Microcycle    from "../models/Microcycle.js";
-import Mesocycle     from "../models/Mesocycle.js";
-import MasterPlan    from "../models/MasterPlan.js";
+import WorkoutSession from "../models/workoutSession.js";
+import MasterPlan    from "../models/masterPlan.js";
+import Mesocycle     from "../models/mesoCycle.js";
+import Microcycle    from "../models/microCycle.js";
+
 import { cached, invalidate, invalidatePattern, TTL } from "../utils/cache.js";
 
 const AI = process.env.AI_SERVICE_URL;

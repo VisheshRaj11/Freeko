@@ -1,10 +1,10 @@
 import axios from "axios";
-import ChatMessage   from "../models/ChatMessage.js";
-import WorkoutSession from "../models/WorkoutSession.js";
-import WeeklyReport  from "../models/WeeklyReport.js";
-import MasterPlan    from "../models/MasterPlan.js";
-import Mesocycle     from "../models/Mesocycle.js";
-import Microcycle    from "../models/Microcycle.js";
+import ChatMessage   from "../models/chatMessage.js";
+import WorkoutSession from "../models/workoutSession.js";
+import WeeklyReport  from "../models/weeklyReport.js";
+import MasterPlan    from "../models/masterPlan.js";
+import Mesocycle     from "../models/mesoCycle.js";
+import Microcycle    from "../models/microCycle.js";
 import { cached, TTL } from "../utils/cache.js";
 
 const AI = process.env.AI_SERVICE_URL;

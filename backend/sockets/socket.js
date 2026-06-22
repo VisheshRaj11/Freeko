@@ -1,4 +1,4 @@
-import ChatMessage from "../models/ChatMessage.js";
+import ChatMessage from "../models/chatMessage.js";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { protect, requireRole } from "../middleware/auth.js";
-import AthleteProfile from "../models/AthleteProfile.js";
+import AthleteProfile from "../models/athleteProfile.js";
 
 const router = Router();
 router.use(protect);

@@ -1,4 +1,4 @@
-import MasterPlan from "../models/MasterPlan.js";
+import MasterPlan from "../models/masterPlan.js";
 import { generateWeeklyReport } from "../controllers/reportController.js";
 
 export const runWeeklyReportJob = async () => {

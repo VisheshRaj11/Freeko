@@ -240,11 +240,11 @@
 
 
 import axios from "axios"
-import MasterPlan     from "../models/MasterPlan.js"
-import Mesocycle      from "../models/Mesocycle.js"
-import Microcycle     from "../models/Microcycle.js"
-import WorkoutSession  from "../models/WorkoutSession.js"
-import AthleteProfile  from "../models/AthleteProfile.js"
+import MasterPlan     from "../models/masterPlan.js"
+import Mesocycle      from "../models/mesoCycle.js"
+import Microcycle     from "../models/microCycle.js"
+import WorkoutSession  from "../models/workoutSession.js"
+import AthleteProfile  from "../models/athleteProfile.js"
 import { cached, invalidate, invalidatePattern, TTL } from "../utils/cache.js"
 
 const AI = process.env.AI_SERVICE_URL

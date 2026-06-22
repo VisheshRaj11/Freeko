@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
-import CoachProfile from "../models/CoachProfile.js";
-import AthleteProfile from "../models/AthleteProfile.js";
+import User from "../models/user.js";
+import CoachProfile from "../models/coachProfile.js";
+import AthleteProfile from "../models/athleteProfile.js";
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });

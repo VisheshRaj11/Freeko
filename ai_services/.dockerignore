@@ -1,0 +1,11 @@
+# ai_services/.dockerignore
+
+__pycache__
+*.pyc
+.env
+.env.local
+.git
+.gitignore
+*.md
+venv
+.venv

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { protect } from "../middleware/auth.js";
-import WorkoutSession from "../models/WorkoutSession.js";
+import WorkoutSession from "../models/workoutSession.js";
 
 const router = Router();
 router.use(protect);
