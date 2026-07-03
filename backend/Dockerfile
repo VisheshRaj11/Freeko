@@ -4,7 +4,7 @@ FROM node:20-alpine AS base
 WORKDIR /app
 
 # ── Install dependencies first (layer caching) ──────────────
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm install --omit=dev
 
 # ── Copy source ──────────────────────────────────────────────
