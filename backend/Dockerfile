@@ -8,7 +8,7 @@ COPY backend/package*.json ./
 RUN npm install --omit=dev
 
 # ── Copy source ──────────────────────────────────────────────
-COPY . .
+COPY backend/ .
 
 # Express + Socket.io default port
 EXPOSE 5000
