@@ -1,14 +1,65 @@
-# docker-compose.yml — at project root
-version: "3.8"
-services:
-  redis:
-    image: redis:7-alpine
-    container_name: freeko-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    command: redis-server --save 60 1 --loglevel warning
+# # docker-compose.yml — at project root
+# version: "3.8"
+# services:
+#   redis:
+#     image: redis:7-alpine
+#     container_name: freeko-redis
+#     ports:
+#       - "6379:6379"
+#     volumes:
+#       - redis-data:/data
+#     command: redis-server --save 60 1 --loglevel warning
 
-volumes:
-  redis-data:
+# volumes:
+#   redis-data:
+
+# docker-compose.yml
+
+version: "3.8"
+
+services:
+
+  # ── FastAPI AI Service ───────────────────────────────────────
+  ai_services:
+    build:
+      context: ./ai_services
+      dockerfile: Dockerfile
+    container_name: freeko-ai
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./ai_services/.env
+    networks:
+      - freeko-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Node.js Backend ──────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: freeko-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Only override the inter-container URL
+      # Redis URL comes from .env (Upstash) — no override needed
+      AI_SERVICE_URL: http://ai_services:8000
+    depends_on:
+      ai_services:
+        condition: service_healthy
+    networks:
+      - freeko-net
+    restart: unless-stopped
+
+networks:
+  freeko-net:
+    driver: bridge
